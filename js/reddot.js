@@ -8,7 +8,7 @@ var sqfd = 20
 
 
 const rPlace = 0.3
-const dPlace = 0.5
+const dPlace = 0.7
 
 var maze = undefined
 var canvas = undefined
@@ -109,16 +109,6 @@ class SqfField {
 	}
 	createMaze(type){
 		//borders are the same
-		//init patterns
-		var left_up = new Sqf(true, false, false, true)
-		var up_right = new Sqf(true, true, false, false)
-		var right_down = new Sqf(false, true, true, false)
-		var down_left = new Sqf(false, false, true, true)
-		var left = new Sqf(false, false, false, true)
-		var right = new Sqf(false, true, false, false)
-		var up = new Sqf(true, false, false, false)
-		var down = new Sqf(false, false, true, false)
-
 
   		switch (type) {
   			case `eller`:
@@ -153,9 +143,7 @@ class SqfField {
 			this.field[0][j].index = j
 		}
 		for (let i = 0; i < this.height; i++) {
-			if (i != this.height - 1){
-				//not last line
-
+			if (i != this.height - 1){ //not last line
 				//set right
 				for (let j = 0; j < this.width; j++) {
 					//place right
@@ -174,6 +162,7 @@ class SqfField {
 				//place down
 				let downWay = false
 				let cindex = 0
+				let maxindex = 0
 				for (let j = 0; j < this.width; j++) {
 					if ( cindex != this.field[i][j].index) { 
 						downWay = false 
@@ -194,7 +183,9 @@ class SqfField {
 						downWay = true
 					}	
 					cindex = this.field[i][j].index
+					maxindex = (cindex > maxindex) ? cindex : maxindex
 				}
+				maxindex++
 				//copy to next line
 				let line =  new Array(this.width)
 				for (let j = 0; j < this.width; j++){
@@ -207,7 +198,7 @@ class SqfField {
 						line[j].right = false
 					}
 					if (line[j].down){
-						line[j].index = cindex++
+						line[j].index = maxindex++
 						line[j].down = false
 					}
 				}
