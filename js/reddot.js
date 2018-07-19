@@ -1,4 +1,4 @@
-//arrow fucntions
+//arrow functions
 const isDefined = (check) => (check !== undefined);
 
 //const or start data
@@ -6,15 +6,20 @@ var cwidth = 640
 var cheight = 480
 var sqfd = 20
 
+var startX = 0
+var startY = 0
+
 const rPlace = 0.3
 const dPlace = 0.7
 
 var maze = undefined
 var reddot = undefined
 var exit = undefined
+var path = undefined
 
 var drawFOV = true
 var drawExitC = true
+var drawPath = true
 
 //int
 function init(){
@@ -48,7 +53,7 @@ function startMaze(){
 	//create maze using method
 	maze.createMaze('eller')
 	//create point
-	reddot = new Point(0,0)
+	reddot = new Point(startX, startY)
 	//create exit
 	exit = createExit()
 
@@ -130,6 +135,8 @@ function handleKeys(event){
 			}
 		}
 		if (move){
+			//add point to path
+			addPointToPath()
 			//draw stuff
 			draw()
 			//check if exit
@@ -158,6 +165,15 @@ function checkWall(xf, yf, xt, yt){
 function checkExit(){
 	if (isDefined(reddot) && isDefined(exit)){
 		return reddot.is(exit)
+	}
+}
+//add point to path
+function addPointToPath(){
+	if (isDefined(reddot)){
+		if (!isDefined(path)){
+			path = new Array()
+		}
+		path.push(new Point(reddot.x, reddot.y))
 	}
 }
 
@@ -198,9 +214,25 @@ function draw(){
 	if (isDefined(exit) && drawExitC){
 		drawExit()
 	}
+	if (isDefined(path) && drawPath){
+		drawPathLine()
+	}
 	//check if exit
 	if (checkExit()){
 		startMaze()
+	}
+}
+function drawPathLine(){
+	let ctx = getCtx()
+	if (isDefined(ctx) && isDefined(path) && drawPath){
+		ctx.beginPath()
+		ctx.strokeStyle = "purple"
+		ctx.moveTo(startX + sqfd/2, startY + sqfd/2)
+		for( let i = 0; i < path.length; i++){ //add line to path view
+			ctx.lineTo(path[i].x*sqfd + sqfd/2, path[i].y*sqfd + sqfd/2)	
+		}
+		ctx.stroke()
+		ctx.save()
 	}
 }
 function drawExit(){
@@ -217,12 +249,12 @@ function drawGradient(){
 	if (isDefined(reddot)){
 		let ctx = getCtx()
 		if (isDefined(ctx))	{
-			ctx.beginPath()
+			ctx.beginPath() // centerx inner, centery inner, radius inner, centerx outer, centery outer, radius outer
 			let gradient = ctx.createRadialGradient(sqfd*reddot.x + sqfd/2, sqfd*reddot.y + sqfd/2, 50, sqfd*reddot.x + sqfd/2, sqfd*reddot.y + sqfd/2, 100);
-			gradient.addColorStop(0, 'white');
-			gradient.addColorStop(1, 'black');
+			gradient.addColorStop(0, 'white'); //from
+			gradient.addColorStop(1, 'black'); //to
 			ctx.fillStyle = gradient;
-			ctx.fillRect(0, 0, 640, 480);
+			ctx.fillRect(0, 0, 640, 480); 
 			ctx.save()
 		}
 	}
@@ -232,36 +264,36 @@ function drawMaze(){
 		let ctx = getCtx()
 		ctx.strokeStyle = "black"
 		if (isDefined(ctx)){
-			var startX = 0;
-			var startY = 0;
+			var lstartX = 0;
+			var lstartY = 0;
 			for (let i = 0; i < maze.height; i++){
 				for (let j = 0; j < maze.width; j++){
 					if (maze.field[i][j].up){
-						drawLine(startX, startY, startX + sqfd, startY)
+						drawLine(lstartX, lstartY, lstartX + sqfd, lstartY)
 					}
 					if (maze.field[i][j].right){
-						drawLine(startX + sqfd, startY, startX + sqfd, startY + sqfd)
+						drawLine(lstartX + sqfd, lstartY, lstartX + sqfd, lstartY + sqfd)
 					}
 					if (maze.field[i][j].down){
-						drawLine(startX, startY + sqfd, startX + sqfd, startY + sqfd)
+						drawLine(lstartX, lstartY + sqfd, lstartX + sqfd, lstartY + sqfd)
 					}
 					if (maze.field[i][j].left){
-						drawLine(startX, startY, startX, startY + sqfd)
+						drawLine(lstartX, lstartY, lstartX, lstartY + sqfd)
 					}
-					startX += sqfd
+					lstartX += sqfd
 				}
-				startX = 0
-				startY += sqfd
+				lstartX = 0
+				lstartY += sqfd
 			}
 			ctx.save()
 		}
 	}
 }
-function drawLine(startX, startY, endX, endY){
+function drawLine(lstartX, lstartY, endX, endY){
 	let ctx = getCtx()
 	if (isDefined(ctx)){
 		ctx.beginPath()
-		ctx.moveTo(startX, startY)
+		ctx.moveTo(lstartX, lstartY)
 		ctx.lineTo(endX, endY)
 		ctx.stroke()
 		ctx.save()
