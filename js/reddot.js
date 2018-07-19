@@ -8,11 +8,13 @@ var sqfd = 20
 
 const rPlace = 0.3
 const dPlace = 0.7
-const extPlace = 0.5
 
 var maze = undefined
 var reddot = undefined
 var exit = undefined
+
+var drawFOV = true
+var drawExitC = true
 
 //int
 function init(){
@@ -41,27 +43,31 @@ function init(){
 
 //create maze & reddot
 function startMaze(){
-	//clear all before start new
-	clearCanvas()
-
-	//create new fiels
+	//create new field
 	maze = new SqfField(cwidth/sqfd, cheight/sqfd)
-	//create point
-	reddot = new Point(0,0)
-	//draw field of view
-	drawGradient()
 	//create maze using method
 	maze.createMaze('eller')
+	//create point
+	reddot = new Point(0,0)
+	//create exit
+	exit = createExit()
+
+	//clear all before start new
+	clearCanvas()
+	
+	//draw field of view
+	if (isDefined(reddot) && drawFOV){
+		drawGradient()
+	}
+	//draw maze
 	if (isDefined(maze)){
-		//draw maze
 		drawMaze()
 	}
 	//draw reddot
 	if (isDefined(reddot)){
 		drawReddot()
 	}
-
-	exit = createExit()
+	//draw exit
 	if (isDefined(exit)){
 		drawExit()
 	}
@@ -124,14 +130,8 @@ function handleKeys(event){
 			}
 		}
 		if (move){
-			//clear canvas
-			clearCanvas()
-			//draw field of view
-			drawGradient()
-			//redraw maze
-			drawMaze()
-			//redraw reddot
-			drawReddot()
+			//draw stuff
+			draw()
 			//check if exit
 			if (checkExit()){
 				startMaze()
@@ -178,6 +178,29 @@ function clearCanvas(){
 		let canvas = document.getElementById(`field`)
 		ctx.clearRect(0, 0, canvas.width, canvas.height)
 		ctx.save()
+	}
+}
+function draw(){
+	//clear canvas
+	clearCanvas()
+	if (isDefined(reddot) && drawFOV){
+		drawGradient()
+	}
+	//redraw maze
+	if (isDefined(maze)){
+		drawMaze()
+	}
+	//redraw reddot
+	if (isDefined(reddot)){
+		drawReddot()
+	}
+	//draw exti
+	if (isDefined(exit) && drawExitC){
+		drawExit()
+	}
+	//check if exit
+	if (checkExit()){
+		startMaze()
 	}
 }
 function drawExit(){
