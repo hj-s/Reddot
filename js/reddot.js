@@ -72,7 +72,7 @@ function startMaze(){
 	//create new field
 	maze = new SqfField(cwidth/sqfd, cheight/sqfd)
 	//create maze using method
-	maze.createMaze('eller')
+	maze.createMaze(`eller`)
 	//create point
 	reddot = new Point(startX, startY)
 	//create exit
@@ -281,7 +281,7 @@ function drawPathLine(){
 	if (isDefined(ctx)){
 		if (isDefined(path) && drawPath){
 			ctx.beginPath()
-			ctx.strokeStyle = "purple"
+			ctx.strokeStyle = `purple`
 			ctx.moveTo(startX + sqfd/2, startY + sqfd/2)
 			for( let i = 0; i < path.length; i++){ //add line to path view
 				ctx.lineTo(path[i].x*sqfd + sqfd/2, path[i].y*sqfd + sqfd/2)	
@@ -298,7 +298,7 @@ function drawExit(){
 		let ctx = getCtx()
 		if (isDefined(ctx)){
 			ctx.beginPath()
-			ctx.strokeStyle = "red"
+			ctx.strokeStyle = `red`
 			ctx.strokeRect(exit.x*sqfd + sqfd/4, exit.y*sqfd + sqfd/4 ,sqfd/2,sqfd/2); 
 			ctx.save()
 		}else {
@@ -314,8 +314,8 @@ function drawGradient(){
 		if (isDefined(ctx))	{
 			ctx.beginPath() // centerx inner, centery inner, radius inner, centerx outer, centery outer, radius outer
 			let gradient = ctx.createRadialGradient(sqfd*reddot.x + sqfd/2, sqfd*reddot.y + sqfd/2, 50, sqfd*reddot.x + sqfd/2, sqfd*reddot.y + sqfd/2, 100)
-			gradient.addColorStop(0, 'white') //from
-			gradient.addColorStop(1, 'black') //to
+			gradient.addColorStop(0, `white`) //from
+			gradient.addColorStop(1, `black`) //to
 			ctx.fillStyle = gradient
 			ctx.fillRect(0, 0, cwidth, cheight);
 			ctx.save()
@@ -329,7 +329,7 @@ function drawGradient(){
 function drawMaze(){
 	if (isDefined(maze)){
 		let ctx = getCtx()
-		ctx.strokeStyle = "black"
+		ctx.strokeStyle = `black`
 		if (isDefined(ctx)){
 			let lstartX = 0;
 			let lstartY = 0;
@@ -385,7 +385,7 @@ function drawCircle(centerX, centerY, radius, reddot = false){
 		ctx.beginPath()
 		ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI)
 		if (reddot) { 
-			ctx.fillStyle = "red" 
+			ctx.fillStyle = `red` 
 			ctx.fill()
 		} else{
 			ctx.stroke()
