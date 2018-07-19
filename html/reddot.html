@@ -8,10 +8,19 @@
 		canvas { 
 			border: 1px solid black; 
 		}
+		.controls {
+			float: right;
+			visibility: hidden;
+		}
 	</style>
 
 </head>
 <body onload="init();">
 	<canvas id="field">Your browser does not support canvas</canvas>
+	<div id="controls" class="controls">
+		<input type="checkbox" name="path" id="path" checked="true"><label for="path" id="pathLabel">show path</label>
+		<br>
+		<input type="checkbox" name="fov" id="fov" checked="true"><label for="fov" id="fovLabel">show fov</label>
+	</div>
 </body>
 </html>

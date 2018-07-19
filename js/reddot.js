@@ -21,9 +21,11 @@ var drawFOV = true
 var drawExitC = true
 var drawPath = true
 
+var debug = true
+
 //int
 function init(){
-	var canvas = document.getElementById('field')
+	var canvas = document.getElementById(`field`)
 	if (canvas.getContext) {
 		
 		//set canvase size
@@ -31,18 +33,37 @@ function init(){
 		canvas.width = cwidth
 
 		//get context
-		let ctx = canvas.getContext('2d')
+		let ctx = canvas.getContext(`2d`)
 		ctx.save()
 		
 		//add keypress listener
 		let d = document
-		d.addEventListener('keypress', handleKeys)
+		d.addEventListener(`keypress`, handleKeys)
 
+		if (debug){
+			let pathCb = d.getElementById(`path`)
+			if (isDefined(pathCb)){
+				//add listener
+				pathCb.addEventListener(`change`, handlePathCb)
+				pathCb.style.visibility = `visible`
+				let pathLabel = d.getElementById(`pathLabel`)
+				if (isDefined(pathLabel)) { pathLabel.style.visibility = `visible` }
+			}
+
+			let fovCb = d.getElementById(`fov`)
+			if (isDefined(fovCb)){
+				fovCb.addEventListener(`change`, handleFovCb)
+				fovCb.style.visibility = `visible`
+				let fovLabel = d.getElementById(`fovLabel`)
+				if (isDefined(fovLabel)) { fovLabel.style.visibility = `visible` }
+			}
+		}
+		
 		//startMaze
 		startMaze()
 
 	} else {
-		alert("Your browser does not support canvas")
+		alert(`Your browser does not support canvas`)
 	}
 }
 
@@ -100,6 +121,24 @@ function createExit() {
 			return undefined
 		}
 	}
+}
+//handle pathCb
+function handlePathCb(event){
+	if (isDefined(event)){
+		if (drawPath != event.target.checked){
+			drawPath = event.target.checked
+			draw()
+		}
+	}
+}
+function handleFovCb(event){
+	if (isDefined(event)){
+		if (drawFOV != event.target.checked){
+			drawFOV = event.target.checked
+			draw()
+		}
+	}
+
 }
 //handle keys
 function handleKeys(event){
@@ -400,7 +439,13 @@ class SqfField {
 	createMaze(type){
   		switch (type) {
   			case `eller`:
+  				//for performance testing
+  				let time = isDefined(performance) ? performance.now() : 0
+
   				this.eller()
+
+  				time = isDefined(performance) ? performance.now() - time : 0
+				console.log(type + ` time: ` + time)
   				break;
   			default:
   				console.log(`Not supproted`)
