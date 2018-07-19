@@ -107,29 +107,29 @@ function handleKeys(event){
 	// }
 	if (isDefined(reddot)) {
 		let move = false
-		let key = event.key || event.keyCode
-		if (key == `W` || key == `w`) {
+		console.log(event.key + event.keyCode)
+		if (event.key == `W` || event.key == `w` || event.keyCode == 119 || event.keyCode == 1094) { //w
 			//check if can
 			if (!checkWall(reddot.x, reddot.y, reddot.x, reddot.y-1)){
 				reddot.y -= 1
 				move = true
 			}
 		}
-		if (key == `S` || key == `s`) {
+		if (event.key == `S` || event.key == `s` || event.keyCode == 115 || event.keyCode == 1099) { //s
 			//check if can
 			if (!checkWall(reddot.x, reddot.y, reddot.x, reddot.y+1)){
 				reddot.y += 1
 				move = true
 			}
 		}
-		if (key == `A` || key == `a`) {
+		if (event.key == `A` || event.key == `a` || event.keyCode == 97 || event.keyCode == 1092) { //a
 			//check if can
 			if (!checkWall(reddot.x, reddot.y, reddot.x-1, reddot.y)){
 				reddot.x -= 1
 				move = true
 			}
 		}
-		if (key == `D` || key == `d`) {
+		if (event.key == `D` || event.key == `d` || event.keyCode == 100 || event.keyCode == 1074) { //d
 			//check if can
 			if (!checkWall(reddot.x, reddot.y, reddot.x+1, reddot.y)){
 				reddot.x += 1
@@ -141,6 +141,10 @@ function handleKeys(event){
 			addPointToPath()
 			//draw stuff
 			draw()
+			//check if exit
+			if (checkExit()){
+				startMaze()
+			}
 		}
 	}
 }
@@ -194,6 +198,7 @@ function clearCanvas(){
 		ctx.save()
 	}
 }
+//main draw
 function draw(){
 	//clear canvas
 	clearCanvas()
@@ -204,10 +209,6 @@ function draw(){
 	if (isDefined(maze)){
 		drawMaze()
 	}
-	//redraw reddot
-	if (isDefined(reddot)){
-		drawReddot()
-	}
 	//draw exti
 	if (isDefined(exit) && drawExitC){
 		drawExit()
@@ -215,9 +216,9 @@ function draw(){
 	if (isDefined(path) && drawPath){
 		drawPathLine()
 	}
-	//check if exit
-	if (checkExit()){
-		startMaze()
+	//redraw reddot
+	if (isDefined(reddot)){
+		drawReddot()
 	}
 }
 function drawPathLine(){
@@ -248,11 +249,11 @@ function drawGradient(){
 		let ctx = getCtx()
 		if (isDefined(ctx))	{
 			ctx.beginPath() // centerx inner, centery inner, radius inner, centerx outer, centery outer, radius outer
-			let gradient = ctx.createRadialGradient(sqfd*reddot.x + sqfd/2, sqfd*reddot.y + sqfd/2, 50, sqfd*reddot.x + sqfd/2, sqfd*reddot.y + sqfd/2, 100);
-			gradient.addColorStop(0, 'white'); //from
-			gradient.addColorStop(1, 'black'); //to
-			ctx.fillStyle = gradient;
-			ctx.fillRect(0, 0, 640, 480); 
+			let gradient = ctx.createRadialGradient(sqfd*reddot.x + sqfd/2, sqfd*reddot.y + sqfd/2, 50, sqfd*reddot.x + sqfd/2, sqfd*reddot.y + sqfd/2, 100)
+			gradient.addColorStop(0, 'white') //from
+			gradient.addColorStop(1, 'black') //to
+			ctx.fillStyle = gradient
+			ctx.fillRect(0, 0, 640, 480);
 			ctx.save()
 		}
 	}
