@@ -56,6 +56,8 @@ function startMaze(){
 	reddot = new Point(startX, startY)
 	//create exit
 	exit = createExit()
+	//clear path
+	path = undefined
 
 	//clear all before start new
 	clearCanvas()
@@ -139,10 +141,6 @@ function handleKeys(event){
 			addPointToPath()
 			//draw stuff
 			draw()
-			//check if exit
-			if (checkExit()){
-				startMaze()
-			}
 		}
 	}
 }
