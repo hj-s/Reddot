@@ -1,26 +1,36 @@
 //arrow functions
 const isDefined = (check) => (check !== undefined);
 
-//const or start data
-var cwidth = 640
-var cheight = 480
-var sqfd = 20
+//variables for canvas && square diameter
+var sqfX = 30
+var sqfY = 20
+var sqfd = 30
 
+var cwidth = sqfX*sqfd
+var cheight = sqfY*sqfd
+
+
+//start pos for reddot
 var startX = 0
 var startY = 0
 
+//const for random place borders 
 const rPlace = 0.3
 const dPlace = 0.7
 
+
+//global variables for objects
 var maze = undefined
 var reddot = undefined
 var exit = undefined
 var path = undefined
 
+//variables for draw some stuff
 var drawFOV = true
 var drawExitC = true
 var drawPath = true
 
+//ns
 var debug = true
 
 //int
@@ -228,6 +238,7 @@ function addPointToPath(){
 }
 
 //functions to draw stuff
+//get canvas context to draw
 function getCtx(){
 	let canvas = document.getElementById(`field`)
 	if (isDefined(canvas)){
@@ -243,11 +254,13 @@ function getCtx(){
 		console.log(`canvas is not defined`)
 	}
 }
+//clear canvas for new draw
 function clearCanvas(){
 	let ctx = getCtx()
 	if (isDefined(ctx)){
 		let canvas = document.getElementById(`field`)
-		ctx.clearRect(0, 0, canvas.width, canvas.height)
+		//some odd way to clear canvas
+		ctx.clearRect(0, 0, canvas.width, canvas.height) 
 		ctx.save()
 	}else {
 		console.log(`ctx is not defined`)
@@ -335,6 +348,8 @@ function drawMaze(){
 			let lstartY = 0;
 			for (let i = 0; i < maze.height; i++){
 				for (let j = 0; j < maze.width; j++){
+					//we can remove some draws of lines due to i's right = i+1's left
+					//someday...
 					if (maze.field[i][j].up){
 						drawLine(lstartX, lstartY, lstartX + sqfd, lstartY)
 					}
@@ -347,6 +362,10 @@ function drawMaze(){
 					if (maze.field[i][j].left){
 						drawLine(lstartX, lstartY, lstartX, lstartY + sqfd)
 					}
+					//show index for debug
+					if (debug){
+						drawText(lstartX + sqfd/8 , lstartY + sqfd/2, maze.field[i][j].index)
+					}
 					lstartX += sqfd
 				}
 				lstartX = 0
@@ -358,6 +377,27 @@ function drawMaze(){
 		}
 	}else {
 		console.log(`maze is not defined`)
+	}
+}
+function drawText(lstartX, lstartY, text){
+	let ctx = getCtx()
+	if (isDefined(ctx)){
+		ctx.beginPath()
+		ctx.font = `6px`;
+		ctx.fillStyle = `black`
+		ctx.fillText(text, lstartX, lstartY); 
+		// ctx.strokeStyle = `black`
+		// ctx.stroke()
+		ctx.save()
+		/*
+		var canvas = document.getElementById("myCanvas");
+		var ctx = canvas.getContsext("2d");
+		ctx.font = "30px Arial";
+		ctx.fillText("Hello World",10,50); 
+
+		*/
+	}else {
+		console.log(`ctx is not defined`)
 	}
 }
 function drawLine(lstartX, lstartY, endX, endY){
@@ -544,10 +584,11 @@ class SqfField {
 						line[j].up = false
 					}
 					if (line[j].down){
-						line[j].index = maxindex++
+						line[j].index = maxindex
 						line[j].down = false
 						//match downs and ups
 						line[j].up = true
+						maxindex++
 					}
 				}
 				//place nextline
