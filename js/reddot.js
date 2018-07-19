@@ -215,14 +215,16 @@ function drawExit(){
 }
 function drawGradient(){
 	if (isDefined(reddot)){
-		let ctx = getCtx()	
-		ctx.beginPath()
-		let gradient = ctx.createRadialGradient(sqfd*reddot.x + sqfd/2, sqfd*reddot.y + sqfd/2, 50, sqfd*reddot.x + sqfd/2, sqfd*reddot.y + sqfd/2, 100);
-		gradient.addColorStop(0, 'white');
-		gradient.addColorStop(1, 'black');
-		ctx.fillStyle = gradient;
-		ctx.fillRect(0, 0, 640, 480);
-		ctx.save()
+		let ctx = getCtx()
+		if (isDefined(ctx))	{
+			ctx.beginPath()
+			let gradient = ctx.createRadialGradient(sqfd*reddot.x + sqfd/2, sqfd*reddot.y + sqfd/2, 50, sqfd*reddot.x + sqfd/2, sqfd*reddot.y + sqfd/2, 100);
+			gradient.addColorStop(0, 'white');
+			gradient.addColorStop(1, 'black');
+			ctx.fillStyle = gradient;
+			ctx.fillRect(0, 0, 640, 480);
+			ctx.save()
+		}
 	}
 }
 function drawMaze(){
@@ -265,6 +267,11 @@ function drawLine(startX, startY, endX, endY){
 		ctx.save()
 	}
 }
+function drawReddot(){
+	if (isDefined(reddot)){
+		drawCircle(sqfd*reddot.x + sqfd/2, sqfd*reddot.y + sqfd/2 , (sqfd-5)/2, true)
+	}
+}
 function drawCircle(centerX, centerY, radius, reddot = false){
 	let ctx = getCtx()
 	if (isDefined(ctx)){
@@ -279,18 +286,6 @@ function drawCircle(centerX, centerY, radius, reddot = false){
 		ctx.save()
 	}
 }
-function drawReddot(){
-	if (isDefined(reddot)){
-		drawCircle(sqfd*reddot.x + sqfd/2, sqfd*reddot.y + sqfd/2 , (sqfd-5)/2, true)
-		/*
-		var gradient = ctx.createRadialGradient(sqfd*reddot.x + sqfd/2, sqfd*reddot.y + sqfd/2, 50, sqfd*reddot.x + sqfd/2, sqfd*reddot.y + sqfd/2, 100);
-		gradient.addColorStop(0, 'white');
-		gradient.addColorStop(1, 'black');
-		ctx.fillStyle = gradient;
-		ctx.fillRect(0, 0, 640 480);
-		*/
-	}
-}
 
 //classes
 class Point {
@@ -302,6 +297,7 @@ class Point {
 		return (this.x == point.x && this.y == point.y)
 	}
 }
+//square to fill maze
 class Sqf {
 	constructor(up = false, right = false, down = false, left = false){
 		this.up = up
@@ -318,6 +314,7 @@ class Sqf {
 		this.index = sqf.index
 	}
 }
+//field of sqfs 
 class SqfField {
 	constructor(width, height){
 		this.width = width
@@ -331,8 +328,6 @@ class SqfField {
 		}
 	}
 	createMaze(type){
-		//borders are the same
-
   		switch (type) {
   			case `eller`:
   				this.eller()
@@ -341,6 +336,7 @@ class SqfField {
   				console.log(`Not supproted`)
   				break;
   		}
+  		//borders are the same
   		//fill borders horizontal
 		for (let i = 0; i < this.height; i++){
 			this.field[i][0].left = true
