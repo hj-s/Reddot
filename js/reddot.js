@@ -1,5 +1,5 @@
 //arrow functions
-const isDefined = (check) => (check !== undefined);
+const isDefined = (check) => (check !== undefined)
 
 //variables for canvas && square diameter
 const sqfX = 40
@@ -126,7 +126,7 @@ function createExit() {
 function generatePoint(){
 	let walls = [`up`,`right`,`down`,`left`]
 	//choose wall
-	let randomItem = walls[Math.floor(Math.random()*walls.length)];
+	let randomItem = walls[Math.floor(Math.random()*walls.length)]
 	//shose position on the wall
 	if (randomItem == `up`){
 		return new Point(Math.floor(Math.random()*cwidth/sqfd), 0)
@@ -324,7 +324,7 @@ function drawExit(){
 		if (isDefined(ctx)){
 			ctx.beginPath()
 			ctx.strokeStyle = `red`
-			ctx.strokeRect(exit.x*sqfd + sqfd/4, exit.y*sqfd + sqfd/4 ,sqfd/2,sqfd/2); 
+			ctx.strokeRect(exit.x*sqfd + sqfd/4, exit.y*sqfd + sqfd/4 ,sqfd/2,sqfd/2)
 			ctx.save()
 		}else {
 			console.log(`ctx is not defined`)
@@ -352,14 +352,14 @@ function drawGradient(){
 			gradient.addColorStop(1, `black`) //to
 			ctx.fillStyle = gradient
 			ctx.globalAlpha = 1
-			ctx.fillRect(0, 0, cwidth, cheight);
+			ctx.fillRect(0, 0, cwidth, cheight)
 
 			gradient = ctx.createRadialGradient(sqfd*reddot.x + sqfd/2, sqfd*reddot.y + sqfd/2,  (sqfd-5)/2, sqfd*reddot.x + sqfd/2, sqfd*reddot.y + sqfd/2, 100)
 			gradient.addColorStop(0, `white`) //from
 			gradient.addColorStop(1, `black`) //to
 			ctx.fillStyle = gradient
 			ctx.globalAlpha = 0.8
-			ctx.fillRect(0, 0, cwidth, cheight);
+			ctx.fillRect(0, 0, cwidth, cheight)
 
 			ctx.globalAlpha = 1
 			ctx.save()
@@ -375,8 +375,8 @@ function drawMaze(){
 		let ctx = getCtx()
 		ctx.strokeStyle = `black`
 		if (isDefined(ctx)){
-			let lstartX = 0;
-			let lstartY = 0;
+			let lstartX = 0
+			let lstartY = 0
 			for (let i = 0; i < maze.height; i++){
 				for (let j = 0; j < maze.width; j++){
 					//we can remove some draws of lines due to i's right = i+1's left
@@ -414,9 +414,9 @@ function drawText(lstartX, lstartY, text){
 	let ctx = getCtx()
 	if (isDefined(ctx)){
 		ctx.beginPath()
-		ctx.font = `6px`;
+		ctx.font = `6px`
 		ctx.fillStyle = `black`
-		ctx.fillText(text, lstartX, lstartY); 
+		ctx.fillText(text, lstartX, lstartY)
 		ctx.save()
 	}else {
 		console.log(`ctx is not defined`)
