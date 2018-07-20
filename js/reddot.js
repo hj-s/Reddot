@@ -2,12 +2,12 @@
 const isDefined = (check) => (check !== undefined);
 
 //variables for canvas && square diameter
-var sqfX = 30
-var sqfY = 20
-var sqfd = 20
+const sqfX = 40
+const sqfY = 24
+const sqfd = 20
 
-var cwidth = sqfX*sqfd
-var cheight = sqfY*sqfd
+const cwidth = sqfX*sqfd
+const cheight = sqfY*sqfd
 
 
 //start pos for reddot
@@ -51,21 +51,18 @@ function init(){
 		d.addEventListener(`keypress`, handleKeys)
 
 		if (debug){
+			let controlBox = d.getElementById(`controls`)
+			if (isDefined(controlBox)) { controlBox.style.visibility = `visible` }
 			let pathCb = d.getElementById(`path`)
 			if (isDefined(pathCb)){
 				//add listener
 				pathCb.addEventListener(`change`, handlePathCb)
-				pathCb.style.visibility = `visible`
-				let pathLabel = d.getElementById(`pathLabel`)
-				if (isDefined(pathLabel)) { pathLabel.style.visibility = `visible` }
 			}
 
 			let fovCb = d.getElementById(`fov`)
 			if (isDefined(fovCb)){
 				fovCb.addEventListener(`change`, handleFovCb)
 				fovCb.style.visibility = `visible`
-				let fovLabel = d.getElementById(`fovLabel`)
-				if (isDefined(fovLabel)) { fovLabel.style.visibility = `visible` }
 			}
 		}
 		
@@ -144,7 +141,7 @@ function generatePoint(){
 		return undefined
 	}
 }
-//handle pathCb
+//handle path checkbox
 function handlePathCb(event){
 	if (isDefined(event)){
 		if (drawPath != event.target.checked){
@@ -153,6 +150,7 @@ function handlePathCb(event){
 		}
 	}
 }
+//handle fov checkbox
 function handleFovCb(event){
 	if (isDefined(event)){
 		if (drawFOV != event.target.checked){
@@ -225,6 +223,7 @@ function checkWall(xf, yf, xt, yt){
 			return maze.field[yf][xf].down
 		}
 	}else {
+		console.log(`maze is not defined`)
 		return false
 	}
 }
@@ -344,8 +343,10 @@ function drawGradient(){
 			// gradient.addColorStop(1, `black`) //to
 			// ctx.fillStyle = gradient
 			// ctx.fillRect(0, 0, cwidth, cheight);
-			ctx.beginPath() // centerx inner, centery inner, radius inner, centerx outer, centery outer, radius outer
+			ctx.beginPath() 
 			let gradient = undefined
+
+			// centerx inner, centery inner, radius inner, centerx outer, centery outer, radius outer
 			gradient = ctx.createRadialGradient(sqfd*reddot.x + sqfd/2, sqfd*reddot.y + sqfd/2, 50, sqfd*reddot.x + sqfd/2, sqfd*reddot.y + sqfd/2, 200)
 			gradient.addColorStop(0, `white`) //from
 			gradient.addColorStop(1, `black`) //to
@@ -498,20 +499,18 @@ class SqfField {
 		}
 	}
 	createMaze(type){
+		//for performance testing
+		let time = isDefined(performance) ? performance.now() : 0
   		switch (type) {
   			case `eller`:
-  				//for performance testing
-  				let time = isDefined(performance) ? performance.now() : 0
-
   				this.eller()
-
-  				time = isDefined(performance) ? performance.now() - time : 0
-				console.log(type + ` time: ` + time)
-  				break;
+  				break
   			default:
   				console.log(`Not supproted`)
-  				break;
+  				break
   		}
+	  	time = isDefined(performance) ? performance.now() - time : 0
+		console.log(type + ` time: ` + time)
   		//borders are the same
   		//fill borders horizontal
 		for (let i = 0; i < this.height; i++){
@@ -604,19 +603,6 @@ class SqfField {
 						line[j].down = false
 						//match downs and ups
 						line[j].up = true
-						//test discard loops
-						// if (debug){
-						// 	if (j != 0 && j != line.length-1){
-						// 		if (line[j-1].index != line[j].index) {
-						// 			line[j-1].right = true
-						// 			line[j].left = true
-						// 		}
-						// 		if (line[j+1].index != line[j].index) {
-						// 			line[j+1].left = true
-						// 			line[j].right = true
-						// 		}
-						// 	}
-						// }
 					}
 				}
 				//place nextline
@@ -636,18 +622,3 @@ class SqfField {
 		}
 	}
 }
-
-/*
-	 ___ ___ ___ ___ ___ ___ ___ ___
-	|    ___ ___|    ___|        ___|
-	| 1 | 2  _2_ _2_| 5 | 6 | 6  _6_|
-	| 1   2   7   8   5   6 |_6_  6 |
-	| 1   1   1   1   1   1   1   1 |
-	 ___ ___ ___ ___ ___ ___ ___ ___
-	| 1  _1_ _1_| 4  _4_| 6  _6_  6 |
-	| 1 | 2   2 | 4   4 | 6   6   6 |
-
-	 ___ ___ ___ ___ ___ ___ ___ ___
-	|    ___    |    ___|        ___| 
-	| 1   1   1 | 4   5   6   6   7 |
-*/
