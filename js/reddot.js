@@ -26,11 +26,13 @@ var reddot = undefined
 var exit = undefined
 var path = undefined
 var fovEnhArr = undefined
+var pointArray = undefined
 
 //variables for draw some stuff
 var drawFOV = true
 var drawExitC = true
 var drawPath = true
+var decreaseFov = false
 
 //ns
 var debug = true
@@ -81,12 +83,13 @@ var debug = true
 	}
 	//create maze & reddot
 	function startMaze(){
+		decreaseFov = false
 		//create new field
 		maze = new SqfField(sqfX, sqfY)
 		//create maze using method
 		maze.createMaze(`eller`)
 		//create point
-		reddot = generatePointAtWall()
+		reddot = createReddot()
 		startX = reddot.X
 		startY = reddot.Y
 		//clear path
@@ -98,7 +101,7 @@ var debug = true
 		//create fov enhancement points
 		fovEnhArr = new Array(5)
 		for (let i = 0; i < fovEnhArr.length; i++){
-			fovEnhArr[i] = generatePoint()
+			fovEnhArr[i] = generatePoint(`fovEnh`)
 		}
 		//animate
 		if (isDefined(window)){
@@ -110,11 +113,25 @@ var debug = true
 }
 	additional funcitons {
 */
-
+	//decreaseFov
+	function decreaseFovf(){
+		if (fovRM > 1 && decreaseFov){
+			fovRM--
+			decreaseFov	 = false
+			//animate
+			if (isDefined(window)){
+				window.requestAnimationFrame(draw)
+			}
+		}
+	}
+	//degradation of fov
+	function fovDeg(){
+		setTimeout(decreaseFovf, 10000)
+	}
 	//create exit
 	function createExit() {
 		if (isDefined(maze)){
-			let cexit = generatePointAtWall()
+			let cexit = generatePointAtWall(`exit`)
 			if (isDefined(reddot)){
 				return (cexit.is(reddot) ? createExit() : cexit )
 			}else {
@@ -123,27 +140,42 @@ var debug = true
 		}
 	}
 	//generate random point on the wall
-	function generatePointAtWall(){
+	function generatePointAtWall(type = undefined){
 		let walls = [`up`,`right`,`down`,`left`]
 		//choose wall
 		let randomItem = walls[Math.floor(Math.random()*walls.length)]
 		//shose position on the wall
 		if (randomItem == `up`){
-			return new Point(Math.floor(Math.random()*sqfX), 0)
+			return new Point(Math.floor(Math.random()*sqfX), 0, type)
 		}else if (randomItem == `right`) {
-			return new Point(sqfX - 1, Math.floor(Math.random()*sqfY))
+			return new Point(sqfX - 1, Math.floor(Math.random()*sqfY), type)
 		}else if (randomItem == `down`) {
-			return new Point(Math.floor(Math.random()*sqfX), sqfY - 1)
+			return new Point(Math.floor(Math.random()*sqfX), sqfY - 1, type)
 		}else if (randomItem ==`left` ) {
-			return new Point(0 ,Math.floor(Math.random()*sqfY))
+			return new Point(0 ,Math.floor(Math.random()*sqfY), type)
 		}else {
 			console.log(`unknown wall`)
-			return undefined
+			return generatePoint(type)
 		}
 	}
 	//generate random point
-	function generatePoint(){
-		return new Point( Math.floor(Math.random()*sqfX), Math.floor(Math.random()*sqfY))
+	function generatePoint(type = undefined){
+		let point = new Point( Math.floor(Math.random()*sqfX), Math.floor(Math.random()*sqfY), type)
+		if (isDefined(reddot)){
+			if (point.is(reddot)) { 
+				return generatePoint(type)
+			}
+		}
+		if (isDefined(exit)){
+			if  (point.is(exit)){
+				return generatePoint(type)
+			}
+		}
+		return point
+	}
+	//function createReddot
+	function  createReddot(){
+		return generatePointAtWall(`reddot`)
 	}
 	//check if can move from x,y to x1y1
 	function checkWall(xf, yf, xt, yt){
@@ -170,11 +202,27 @@ var debug = true
 				if (checkPoint(fovEnhArr[i])){
 					fovRM++
 					fovEnhArr.splice( i, 1)
+					decreaseFov = true
+					fovDeg()
 				}
 			}
 		}else {
 			console.log(`reddot/fovEnhArr is not defined`)
 			return false			
+		}
+	}
+	//check if point is in allPoints array
+	function checkPointArray(point){
+		if (isDefined(point) && isDefined(pointArray)){
+			for (let i = 0; i < pointArray.length; i++){
+				if (point.is(pointArray[i])){
+					return false
+				}
+			}
+			return true
+		}else {
+			console.log(`point/points is not defined`)
+			return true
 		}
 	}
 	//check if reddot in point
@@ -195,13 +243,27 @@ var debug = true
 			return false
 		}
 	}
+	//function for check reddot in event
+	function checkReddotEvents(){
+		if (isDefined(reddot)){
+			if (checkExit()){
+
+			}
+			if (checkFovEnh()){
+
+			}
+		}else {
+			console.log(`reddot isa not defined`)
+			return false
+		}
+	}
 	//add point to path
 	function addPointToPath(point){
 		if (isDefined(point)){
 			if (!isDefined(path)){
 				path = new Array()
 			}
-			path.push(new Point(point.x, point.y))
+			path.push(new Point(point.x, point.y, `path`))
 		}else {
 			console.log(`point is not defined`)
 		}
@@ -547,9 +609,10 @@ var debug = true
 
 	//classes
 	class Point {
-		constructor(x, y){
+		constructor(x, y, type = undefined){
 			this.x = x
 			this.y = y
+			this.type = type
 		}
 		is(point){
 			return (this.x == point.x && this.y == point.y)
