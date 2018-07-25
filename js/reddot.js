@@ -19,7 +19,7 @@ const dPlace = 0.7
 
 //variables for  fov
 var fovRM = 1
-
+var currentTimer = undefined
 //global variables for objects
 var maze = undefined
 var reddot = undefined
@@ -83,7 +83,7 @@ var debug = true
 	}
 	//create maze & reddot
 	function startMaze(){
-		decreaseFov = false
+		currentTimer = undefined
 		//create new field
 		maze = new SqfField(sqfX, sqfY)
 		//create maze using method
@@ -115,9 +115,9 @@ var debug = true
 */
 	//decreaseFov
 	function decreaseFovf(){
-		if (fovRM > 1 && decreaseFov){
+		if (fovRM > 1 && currentTimer){
 			fovRM--
-			decreaseFov	 = false
+			currentTimer = undefined
 			//animate
 			if (isDefined(window)){
 				window.requestAnimationFrame(draw)
@@ -126,7 +126,12 @@ var debug = true
 	}
 	//degradation of fov
 	function fovDeg(){
-		setTimeout(decreaseFovf, 10000)
+		let timerID = setTimeout(decreaseFovf, 10000)
+		//for stacking fov
+		if (isDefined(currentTimer)){
+			clearTimeout(currentTimer)
+		}
+		return timerID
 	}
 	//create exit
 	function createExit() {
@@ -202,8 +207,7 @@ var debug = true
 				if (checkPoint(fovEnhArr[i])){
 					fovRM++
 					fovEnhArr.splice( i, 1)
-					decreaseFov = true
-					fovDeg()
+					currentTimer = fovDeg()
 				}
 			}
 		}else {
