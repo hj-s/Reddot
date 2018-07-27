@@ -32,7 +32,6 @@ var pointArray = undefined
 var drawFOV = true
 var drawExitC = true
 var drawPath = true
-var decreaseFov = false
 
 //ns
 var debug = true
@@ -43,12 +42,15 @@ var debug = true
 
 	//int
 	function init(){
-		var canvas = document.getElementById(`field`)
+		let canvas = document.getElementById(`field`)
 		if (canvas.getContext) {
 			
 			//set canvase size
 			canvas.height = cheight
 			canvas.width = cwidth
+			//test
+			// canvas.width = window.innerWidth;
+   //          canvas.height = window.innerHeight;
 
 			//get context
 			let ctx = canvas.getContext(`2d`)
@@ -56,7 +58,7 @@ var debug = true
 			
 			//add keypress listener
 			let d = document
-			d.addEventListener(`keypress`, handleKeys)
+			d.addEventListener(`keydown`, handleKeys)
 
 			if (debug){
 				let controlBox = d.getElementById(`controls`)
@@ -83,7 +85,9 @@ var debug = true
 	}
 	//create maze & reddot
 	function startMaze(){
-		currentTimer = undefined
+		if (isDefined(currentTimer)){
+			clearTimeout(currentTimer)
+		}
 		//create new field
 		maze = new SqfField(sqfX, sqfY)
 		//create maze using method
@@ -97,7 +101,6 @@ var debug = true
 		addPointToPath(reddot)
 		//create exit
 		exit = createExit()
-		//test
 		//create fov enhancement points
 		fovEnhArr = new Array(5)
 		for (let i = 0; i < fovEnhArr.length; i++){
@@ -115,7 +118,7 @@ var debug = true
 */
 	//decreaseFov
 	function decreaseFovf(){
-		if (fovRM > 1 && currentTimer){
+		if (fovRM > 1){
 			fovRM--
 			currentTimer = undefined
 			//animate
@@ -305,28 +308,28 @@ var debug = true
 		}
 		if (isDefined(reddot)) {
 			let move = false
-			if (event.key == `W` || event.key == `w` || event.keyCode == 119 || event.keyCode == 1094) { //w
+			if (event.key == `W` || event.key == `w` || event.keyCode == 119 || event.keyCode == 1094 || event.keyCode == 38) { //w
 				//check if can
 				if (!checkWall(reddot.x, reddot.y, reddot.x, reddot.y-1)){
 					reddot.y -= 1
 					move = true
 				}
 			}
-			if (event.key == `S` || event.key == `s` || event.keyCode == 115 || event.keyCode == 1099) { //s
+			if (event.key == `S` || event.key == `s` || event.keyCode == 115 || event.keyCode == 1099 || event.keyCode == 40) { //s
 				//check if can
 				if (!checkWall(reddot.x, reddot.y, reddot.x, reddot.y+1)){
 					reddot.y += 1
 					move = true
 				}
 			}
-			if (event.key == `A` || event.key == `a` || event.keyCode == 97 || event.keyCode == 1092) { //a
+			if (event.key == `A` || event.key == `a` || event.keyCode == 97 || event.keyCode == 1092 || event.keyCode == 37) { //a
 				//check if can
 				if (!checkWall(reddot.x, reddot.y, reddot.x-1, reddot.y)){
 					reddot.x -= 1
 					move = true
 				}
 			}
-			if (event.key == `D` || event.key == `d` || event.keyCode == 100 || event.keyCode == 1074) { //d
+			if (event.key == `D` || event.key == `d` || event.keyCode == 100 || event.keyCode == 1074 || event.keyCode == 39) { //d
 				//check if can
 				if (!checkWall(reddot.x, reddot.y, reddot.x+1, reddot.y)){
 					reddot.x += 1
