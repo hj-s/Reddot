@@ -388,6 +388,8 @@ var moveR = false
 						gmove = false
 						upM = false
 					}
+				}else{
+					upM = false
 				}
 			}
 			if (downM) { //s
@@ -401,6 +403,8 @@ var moveR = false
 						downM = false
 						gmove = false
 					}
+				}else{
+					downM = false
 				}
 			}
 			if (leftM) { //a
@@ -415,6 +419,8 @@ var moveR = false
 						leftM = false
 						gmove = (upM || downM) ? true : false
 					}
+				}else{
+					rightM = false
 				}
 			}
 			if (rightM) { //d
@@ -429,6 +435,8 @@ var moveR = false
 						rightM = false
 						gmove = (upM || downM) ? true : false
 					}
+				}else{
+					leftM = false
 				}
 			}
 			if (move){
