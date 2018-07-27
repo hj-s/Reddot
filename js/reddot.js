@@ -20,6 +20,7 @@ const dPlace = 0.7
 //variables for  fov
 var fovRM = 1
 var currentTimer = undefined
+var cTimers = undefined
 //
 //global variables for objects
 var maze = undefined
@@ -49,6 +50,16 @@ var moveU = false
 var moveD = false
 var moveL = false
 var moveR = false
+
+/*
+	TODO list:
+	- add feature for diagomal movement with fixed corners
+	- fix stopping on first move
+	- fix stopping on change vector of move
+	after allfixes with smooth move:
+	- show only smooth moving reddot
+
+*/
 
 /*
 	test functions{
@@ -144,6 +155,7 @@ var moveR = false
 		//create exit
 		exit = createExit()
 		//create fov enhancement points
+		cTimers = 0
 		fovEnhArr = new Array(5)
 		for (let i = 0; i < fovEnhArr.length; i++){
 			fovEnhArr[i] = generatePoint(`fovEnh`)
@@ -165,11 +177,15 @@ var moveR = false
 		if (fovRM > 1){
 			fovRM--
 			currentTimer = undefined
+			if (cTimers > 1){
+				currentTimer = setTimeout(decreaseFovf, 10000)
+			}
 		}
 	}
 	//degradation of fov
 	function fovDeg(){
 		let timerID = setTimeout(decreaseFovf, 10000)
+		cTimers++
 		//for stacking fov
 		if (isDefined(currentTimer)){
 			clearTimeout(currentTimer)
