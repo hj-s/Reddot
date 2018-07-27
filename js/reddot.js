@@ -107,11 +107,11 @@ var moveR = false
 				window.requestAnimFrame = (
 						function(){
 							return  window.requestAnimationFrame       ||
-								window.webkitRequestAnimationFrame ||
-								window.mozRequestAnimationFrame    ||
-								function( callback ){
-									window.setTimeout(callback, 1000 / 60);
-								};
+									window.webkitRequestAnimationFrame ||
+									window.mozRequestAnimationFrame    ||
+									function( callback ){
+										window.setTimeout(callback, 1000 / 60);
+									};
 				})();
 			}
 
@@ -343,16 +343,16 @@ var moveR = false
 	//handle keys
 	function handleKeysDown(event){
 		if (event.key == `W` || event.key == `w` || event.keyCode == 119 || event.keyCode == 1094 || event.keyCode == 38) { //w
-			upM = (!downM) ? true : false
+			upM = (!downM && !leftM && !rightM) ? true : false
 		}
 		if (event.key == `S` || event.key == `s` || event.keyCode == 115 || event.keyCode == 1099 || event.keyCode == 40) { //s
-			downM = (!upM) ? true : false
+			downM = (!upM && !leftM && !rightM) ? true : false
 		}
 		if (event.key == `A` || event.key == `a` || event.keyCode == 97 || event.keyCode == 1092 || event.keyCode == 37) { //a
-			leftM = (!rightM) ? true : false
+			leftM = (!rightM && !upM && !downM) ? true : false
 		}
 		if (event.key == `D` || event.key == `d` || event.keyCode == 100 || event.keyCode == 1074 || event.keyCode == 39) { //d
-			rightM = (!leftM) ? true : false
+			rightM = (!leftM && !upM && !downM) ? true : false
 		}
 	}
 	//handle keys
