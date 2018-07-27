@@ -20,6 +20,7 @@ const dPlace = 0.7
 //variables for  fov
 var fovRM = 1
 var currentTimer = undefined
+//
 //global variables for objects
 var maze = undefined
 var reddot = undefined
@@ -117,6 +118,7 @@ var moveR = false
 				
 			//startMaze
 			startMaze()
+			drawLoop()
 
 		} else {
 			alert(`Your browser does not support canvas`)
@@ -146,7 +148,6 @@ var moveR = false
 		for (let i = 0; i < fovEnhArr.length; i++){
 			fovEnhArr[i] = generatePoint(`fovEnh`)
 		}
-		drawLoop()
 	}
 
 	// animation loop
@@ -375,7 +376,6 @@ var moveR = false
 	function handleKeys2(){
 		if (isDefined(reddot)) {
 			let move = false
-			//let lReddot = new Point(reddot.y, reddot.y, `ttemp`)
 			if (upM) { //w
 				downM = false
 				//check if can
