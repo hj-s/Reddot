@@ -342,16 +342,16 @@ var moveR = false
 	//handle keys
 	function handleKeysDown(event){
 		if (event.key == `W` || event.key == `w` || event.keyCode == 119 || event.keyCode == 1094 || event.keyCode == 38) { //w
-			upM = true
+			upM = (!downM) ? true : false
 		}
 		if (event.key == `S` || event.key == `s` || event.keyCode == 115 || event.keyCode == 1099 || event.keyCode == 40) { //s
-			downM = true
+			downM = (!upM) ? true : false
 		}
 		if (event.key == `A` || event.key == `a` || event.keyCode == 97 || event.keyCode == 1092 || event.keyCode == 37) { //a
-			leftM = true
+			leftM = (!rightM) ? true : false
 		}
 		if (event.key == `D` || event.key == `d` || event.keyCode == 100 || event.keyCode == 1074 || event.keyCode == 39) { //d
-			rightM = true
+			rightM = (!leftM) ? true : false
 		}
 	}
 	//handle keys
@@ -412,7 +412,6 @@ var moveR = false
 					if (reddot2.x/sqfd == reddot.x -1){
 						move = true
 						moveL = true
-						//gmove = false
 						leftM = false
 						gmove = (upM || downM) ? true : false
 					}
