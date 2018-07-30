@@ -32,7 +32,7 @@ var pointArray = undefined
 var reddot2 = undefined
 
 //variables for draw some stuff
-var drawFOV = true
+var drawFOV = false
 var drawExitC = true
 var drawPath = true
 
@@ -51,11 +51,17 @@ var moveD = false
 var moveL = false
 var moveR = false
 
+var gmoveU = false
+var gmoveD = false
+var gmoveL = false
+var gmoveR = false
+
 /*
 	TODO list:
 	- add feature for diagomal movement with fixed corners
 	- fix stopping on first move
 	- fix stopping on change vector of move
+	- modify check wall to return corners
 	after allfixes with smooth move:
 	- show only smooth moving reddot
 
@@ -244,6 +250,7 @@ var moveR = false
 	//check if can move from x,y to x1y1
 	function checkWall(xf, yf, xt, yt){
 		if (isDefined(maze)){
+			
 			if (xf-xt > 0){ //move left
 				return maze.field[yf][xf].left
 			}else if (xf-xt < 0) { //move right
@@ -253,6 +260,48 @@ var moveR = false
 				return maze.field[yf][xf].up
 			}else if (yf-yt < 0) { //move down
 				return maze.field[yf][xf].down
+			}
+		}else {
+			console.log(`maze is not defined`)
+			return false
+		}
+	}
+	function checkWall2(xf, yf, xt, yt){
+		if (isDefined(maze)){
+			let diffX = xf - xt
+			let diffY = yf - yt
+			if (Math.abs(diffX) != 0  && Math.abs(diffY) != 0){
+				//to corner
+				if (diffX > 0 && diffY > 0){
+					//up-left
+					return maze.field[yt][xt].down && maze.field[yt][xt].right || maze.field[yf][xf].up && maze.field[yf][xf].left || maze.field[yf][xf].up && maze.field[yt][xt].down || maze.field[yf][xf].left && maze.field[yt][xt].right
+				}else if (diffX < 0 && diffY < 0) {
+					//down-right
+					return maze.field[yt][xt].up && maze.field[yt][xt].left || maze.field[yf][xf].down && maze.field[yf][xf].right || maze.field[yf][xf].down && maze.field[yt][xt].up || maze.field[yf][xf].right && maze.field[yt][xt].left
+				}else if (diffX > 0 && diffY < 0) {
+					//down-left
+					return maze.field[yt][xt].up && maze.field[yt][xt].right || maze.field[yf][xf].down && maze.field[yf][xf].left || maze.field[yf][xf].down && maze.field[yt][xt].up || maze.field[yf][xf].left && maze.field[yt][xt].right
+				}else if (diffX < 0 && diffY > 0) {
+					//up-right
+					return maze.field[yt][xt].down && maze.field[yt][xt].left || maze.field[yf][xf].up && maze.field[yf][xf].right || maze.field[yf][xf].up && maze.field[yt][xt].down || maze.field[yf][xf].right && maze.field[yt][xt].left
+				}
+
+			}else if (Math.abs(diffX) != 0 && Math.abs(diffY) == 0 ) {
+				//horizontal
+				if (diffX > 0){
+					return maze.field[yf][xf].left
+				}else {
+					return maze.field[yf][xf].right
+				}
+			}else if (Math.abs(diffX) == 0 && Math.abs(diffY) != 0) {
+				//vertical
+				if (diffY > 0){
+					return maze.field[yf][xf].up
+				}else {
+					return maze.field[yf][xf].down
+				}
+			}else {
+				return false
 			}
 		}else {
 			console.log(`maze is not defined`)
@@ -358,22 +407,30 @@ var moveR = false
 	}
 	//handle keys
 	function handleKeysDown(event){
+		//check what keys are down
+		//do not impact on them
 		if (event.key == `W` || event.key == `w` || event.keyCode == 119 || event.keyCode == 1094 || event.keyCode == 38) { //w
-			upM = (!downM && !leftM && !rightM) ? true : false
+			//upM = (!downM && !leftM && !rightM) ? true : false
+			upM = true
 		}
 		if (event.key == `S` || event.key == `s` || event.keyCode == 115 || event.keyCode == 1099 || event.keyCode == 40) { //s
-			downM = (!upM && !leftM && !rightM) ? true : false
+			//downM = (!upM && !leftM && !rightM) ? true : false
+			downM = true
 		}
 		if (event.key == `A` || event.key == `a` || event.keyCode == 97 || event.keyCode == 1092 || event.keyCode == 37) { //a
-			leftM = (!rightM && !upM && !downM) ? true : false
+			//leftM = (!rightM && !upM && !downM) ? true : false
+			leftM = true
 		}
 		if (event.key == `D` || event.key == `d` || event.keyCode == 100 || event.keyCode == 1074 || event.keyCode == 39) { //d
-			rightM = (!leftM && !upM && !downM) ? true : false
+			//rightM = (!leftM && !upM && !downM) ? true : false
+			rightM = true
 		}
 	}
 	//handle keys
 	function handleKeysUp(event){
-		if (!gmove){
+		//checm what keys are UP
+		//do not impact on them
+		//if (!gmove){
 			if (event.key == `W` || event.key == `w` || event.keyCode == 119 || event.keyCode == 1094 || event.keyCode == 38) { //w
 				upM =  false
 			}
@@ -386,92 +443,160 @@ var moveR = false
 			if (event.key == `D` || event.key == `d` || event.keyCode == 100 || event.keyCode == 1074 || event.keyCode == 39) { //d
 				rightM = false
 			}
-		}
+		//}
 	}
-
+	function fuzzCheck(one, two){
+		let delta = 0.3
+		let diff = Math.abs(one - two)
+		return (diff <= delta)
+	}
 	function handleKeys2(){
+		/*
+			need to rewrite function!
+			
+
+		*/
 		if (isDefined(reddot)) {
+			//let for check if we must move reddot to new sqf
 			let move = false
-			if (upM) { //w
-				downM = false
-				//check if can
-				if (!checkWall(reddot.x, reddot.y, reddot.x, reddot.y-1)){
-					gmove = true
-					reddot2.y -= 1
-					if (reddot2.y/sqfd == reddot.y -1){
-						move = true
-						moveU = true
-						gmove = false
-						upM = false
-					}
-				}else{
-					upM = false
+			//test
+			if (upM && rightM){
+				if (checkWall2(reddot.x, reddot.y, reddot.x+1, reddot.y-1)){
+					return
 				}
 			}
-			if (downM) { //s
+			if (rightM && downM){
+				if (checkWall2(reddot.x, reddot.y, reddot.x+1, reddot.y+1)){
+					return
+				}
+			}
+			if (downM && leftM){
+				if (checkWall2(reddot.x, reddot.y, reddot.x-1, reddot.y+1)){
+					return
+				}
+			}
+			if (leftM && upM){
+				if (checkWall2(reddot.x, reddot.y, reddot.x-1, reddot.y-1)){
+					return	
+				}
+			}
+			//check whar keys are pressed
+			if (upM || gmoveU) { //w
+				//? is it right to forbit down move?
+				gmoveD = false
+				//check if can move redot to new sqf
+				if (!checkWall2(reddot.x, reddot.y, reddot.x, reddot.y-1)){
+					//set another var for movement
+					//because we want to have reddot only in sqf
+					//user may throw keyUp
+					//but we must move reddot
+					gmoveU = true
+					//set var for global movement
+					//show if we start some movement when true
+					//shiw if we stop moving when false
+					gmove = true
+					//move second reddot 
+					reddot2.y -= 1
+					//check if movement to new sqf is completed
+					//if (reddot2.y/sqfd == reddot.y -1){
+					if (fuzzCheck(reddot2.y/sqfd, reddot.y -1)){
+						//place second reddot to match true reddot
+						reddot2.y = (reddot.y - 1)*sqfd
+						//set reddot movement to true
+						move = true
+						//set vector of movement
+						moveU = true
+						//show that we stop globl movement
+						gmove = false
+						//upM = false
+						//show that we stop global moving up
+						gmoveU = false
+					}
+				}else{
+					//if we cannot move so save this
+					gmoveU = false
+				}
+			}
+			if (downM || gmoveD) { //s
 				//check if can
-				if (!checkWall(reddot.x, reddot.y, reddot.x, reddot.y+1)){
+				if (!checkWall2(reddot.x, reddot.y, reddot.x, reddot.y+1)){
+					gmoveD = true
 					gmove = true
 					reddot2.y += 1
-					if (reddot2.y/sqfd == reddot.y + 1){
+					//if (reddot2.y/sqfd == reddot.y + 1){
+					if (fuzzCheck( reddot2.y/sqfd, reddot.y + 1)) {
+						reddot2.y = (reddot.y + 1)*sqfd
 						move = true
 						moveD = true
-						downM = false
 						gmove = false
+						gmoveD = false
 					}
 				}else{
-					downM = false
+					gmoveD = false
 				}
 			}
-			if (leftM) { //a
-				rightM = false
+			if (leftM || gmoveL) { //a
+				gmoveR = false
 				//check if can
-				if (!checkWall(reddot.x, reddot.y, reddot.x-1, reddot.y)){
+				if (!checkWall2(reddot.x, reddot.y, reddot.x-1, reddot.y)){
+					gmoveL = true
 					gmove = true
 					reddot2.x -= 1
-					if (reddot2.x/sqfd == reddot.x -1){
+					//if (reddot2.x/sqfd == reddot.x -1){
+					if (fuzzCheck(reddot2.x/sqfd, reddot.x -1)){
+						reddot2.x = (reddot.x -1)*sqfd
 						move = true
 						moveL = true
-						leftM = false
-						gmove = (upM || downM) ? true : false
+						gmove = (gmoveU || gmoveD) ? true : false
+						gmoveL = false
 					}
 				}else{
-					rightM = false
+					gmoveL = false
 				}
 			}
-			if (rightM) { //d
+			if (rightM || gmoveR) { //d
 				//check if can
-				if (!checkWall(reddot.x, reddot.y, reddot.x+1, reddot.y)){
+				if (!checkWall2(reddot.x, reddot.y, reddot.x+1, reddot.y)){
+					gmoveR = true
 					gmove = true
 					reddot2.x += 1
-					if (reddot2.x/sqfd == reddot.x + 1){
+					//if (reddot2.x/sqfd == reddot.x + 1){
+					if (fuzzCheck(reddot2.x/sqfd, reddot.x + 1)){
+						reddot2.x = (reddot.x + 1)*sqfd
 						move = true
 						moveR = true
 						gmove = false
-						rightM = false
-						gmove = (upM || downM) ? true : false
+						gmove = (gmoveU || gmoveD) ? true : false
+						gmoveR = false
 					}
 				}else{
-					leftM = false
+					gmoveR = false
 				}
 			}
+			//check that we must move reddot
 			if (move){
+				//check if global movement is over
 				if (!gmove){
+					//check vertor of movement
 					if (moveU) {
 						reddot.y -= 1
 						moveU = false
+						gmoveU = false
 					}
 					if (moveD) {
 						reddot.y += 1
 						moveD = false
+						gmoveD = false
 					}
 					if (moveL) {
 						reddot.x -= 1
 						moveL = false
+						gmoveL = false
 					}
 					if (moveR){
 						reddot.x += 1
 						moveR = false	
+						gmoveR = false
 					}
 
 				}
@@ -485,7 +610,221 @@ var moveR = false
 			}
 		}
 	}
+	function handleKeys3(){
+		if (isDefined(reddot)){
+			let move = false
+			if (gmoveU || gmoveR || gmoveD || gmoveL){
+				//continue to move
+				if (gmoveU && gmoveR){
+					reddot2.x += 1
+					reddot2.y -= 1
+					if (fuzzCheck(reddot2.y/sqfd, reddot.y -1) && fuzzCheck(reddot2.x/sqfd, reddot.x + 1)){
+						reddot2.x = (reddot.x + 1)*sqfd
+						reddot2.y = (reddot.y - 1)*sqfd
+						move = true
+						moveU = true
+						moveR = true
+						gmove = false
+						gmoveU = false
+						gmoveR = false
+					}
 
+				}else if (gmoveR && gmoveD) {
+					reddot2.x += 1
+					reddot2.y += 1
+					if (fuzzCheck(reddot2.x/sqfd, reddot.x + 1) && fuzzCheck( reddot2.y/sqfd, reddot.y + 1)){
+						reddot2.x = (reddot.x + 1)*sqfd
+						reddot2.y = (reddot.y + 1)*sqfd
+						move = true
+						moveR = true
+						moveD = true
+						gmove = false
+						gmove =  false
+						gmoveR = false
+						gmoveD = false
+					}
+					
+				}else if (gmoveD && gmoveL) {
+					reddot2.x -= 1
+					reddot2.y += 1
+					if (fuzzCheck( reddot2.y/sqfd, reddot.y + 1) && fuzzCheck(reddot2.x/sqfd, reddot.x -1)) {
+						reddot2.x = (reddot.x -1)*sqfd
+						reddot2.y = (reddot.y + 1)*sqfd
+						move = true
+						moveD = true
+						moveL = true
+						gmove = false
+						gmoveD = false
+						gmoveL = false
+					}
+					
+				}else if (gmoveL && gmoveU) {
+					reddot2.x -= 1
+					reddot2.y -= 1
+					if (fuzzCheck(reddot2.x/sqfd, reddot.x -1) && fuzzCheck(reddot2.y/sqfd, reddot.y -1)){
+						reddot2.x = (reddot.x -1)*sqfd
+						reddot2.y = (reddot.y - 1)*sqfd
+						move = true
+						moveL = true
+						moveU = true
+						gmove = false
+						gmoveL = false
+						gmoveU = true
+					}
+				}else if (gmoveU) {
+					reddot2.y -= 1
+					if (fuzzCheck(reddot2.y/sqfd, reddot.y -1)){
+						reddot2.y = (reddot.y - 1)*sqfd
+						move = true
+						moveU = true
+						gmove = false
+						gmoveU = false
+					}
+					
+				}else if (gmoveR) {
+					reddot2.x += 1
+					if (fuzzCheck(reddot2.x/sqfd, reddot.x + 1)){
+						reddot2.x = (reddot.x + 1)*sqfd
+						move = true
+						moveR = true
+						gmove = false
+						gmove =  false
+						gmoveR = false
+					}
+				}else if (gmoveD) {
+					reddot2.y += 1
+					if (fuzzCheck( reddot2.y/sqfd, reddot.y + 1)) {
+						reddot2.y = (reddot.y + 1)*sqfd
+						move = true
+						moveD = true
+						gmove = false
+						gmoveD = false
+					}
+				}else if (gmoveL) {
+					reddot2.x -= 1
+					if (fuzzCheck(reddot2.x/sqfd, reddot.x -1)){
+						reddot2.x = (reddot.x -1)*sqfd
+						move = true
+						moveL = true
+						gmove = false
+						gmoveL = false
+					}
+				}
+			}else{
+				//start new move
+				if (upM && rightM){
+					if (!checkWall2(reddot.x, reddot.y, reddot.x+1, reddot.y-1)){
+						gmoveU = gmoveR = true
+						gmove = true
+					}
+
+				}else if (rightM && downM) {
+					if (!checkWall2(reddot.x, reddot.y, reddot.x+1, reddot.y+1)){
+						gmoveR = gmoveD = true
+						gmove = true
+					}
+					
+				}else if (downM && leftM) {
+					if (!checkWall2(reddot.x, reddot.y, reddot.x-1, reddot.y+1)){
+						gmoveD = gmoveL = true
+						gmove = true
+					}
+					
+				}else if (leftM && upM) {
+					if (!checkWall2(reddot.x, reddot.y, reddot.x-1, reddot.y-1)){
+						gmoveL = gmoveU = true
+						gmove = true
+					}
+					
+				}else if (upM) {
+					if (!checkWall2(reddot.x, reddot.y, reddot.x, reddot.y-1)){
+						gmoveU = true
+						gmove = true
+					}
+				}else if (rightM) {
+					if (!checkWall2(reddot.x, reddot.y, reddot.x+1, reddot.y)){
+						gmoveR = true
+						gmove = true
+					}
+				}else if (downM) {
+					if (!checkWall2(reddot.x, reddot.y, reddot.x, reddot.y+1)){
+						gmoveD = true
+						gmove = true
+					}
+				}else if (leftM) {
+					if (!checkWall2(reddot.x, reddot.y, reddot.x-1, reddot.y)){
+						gmoveL = true
+						gmove = true
+					}
+				}
+			}
+			if (move){
+				if(moveU && moveR){
+					reddot.y -= 1
+					moveU = false
+					gmoveU = false
+
+					reddot.x += 1
+					moveR = false	
+					gmoveR = false
+				}else if (moveR && moveD) {
+					reddot.x += 1
+					moveR = false	
+					gmoveR = false
+
+					reddot.y +=1
+					moveD = false
+					gmoveD = false
+					
+				}else if (moveD && moveL) {
+					reddot.y +=1
+					moveD = false
+					gmoveD = false
+
+					reddot.x -= 1
+					moveL = false
+					gmoveL = false
+					
+				}else if (moveL && moveU) {
+					reddot.x -= 1
+					moveL = false
+					gmoveL = false
+
+					reddot.y -= 1
+					moveU = false
+					gmoveU = false
+					
+				}else if (moveU) {
+					reddot.y -= 1
+					moveU = false
+					gmoveU = false
+					
+				}else if (moveR) {
+					reddot.x += 1
+					moveR = false	
+					gmoveR = false
+				}else if (moveD) {
+					reddot.y +=1
+					moveD = false
+					gmoveD = false
+					
+				}else if (moveL) {
+					reddot.x -= 1
+					moveL = false
+					gmoveL = false
+				}
+				//add point to path
+				addPointToPath(reddot)
+				//check if fovEnh
+				checkFovEnh()
+				if (checkExit()){
+					startMaze()
+				}
+
+			}
+		}
+
+	}
 
 /*
 }
@@ -530,7 +869,7 @@ var moveR = false
 	function draw(){
 		//clear canvas
 		clearCanvas()
-		handleKeys2(test_global_event)
+		handleKeys3(test_global_event)
 		//draw exit
 		if (isDefined(exit) && drawExitC){
 			drawExit()
