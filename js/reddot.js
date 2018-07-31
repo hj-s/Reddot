@@ -28,18 +28,17 @@ var reddot = undefined
 var exit = undefined
 var path = undefined
 var fovEnhArr = undefined
-var pointArray = undefined
-var reddot2 = undefined
+//var pointArray = undefined
+var reddotView = undefined
 
 //variables for draw some stuff
-var drawFOV = false
+var drawFOV = true
 var drawExitC = true
 var drawPath = true
 
 //ns
 var debug = true
 
-var test_global_event = undefined
 var leftM = false
 var rightM = false
 var upM = false
@@ -58,12 +57,6 @@ var gmoveR = false
 
 /*
 	TODO list:
-	- add feature for diagomal movement with fixed corners
-	- fix stopping on first move
-	- fix stopping on change vector of move
-	- modify check wall to return corners
-	after allfixes with smooth move:
-	- show only smooth moving reddot
 
 */
 
@@ -154,7 +147,7 @@ var gmoveR = false
 		reddot = createReddot()
 		startX = reddot.x
 		startY = reddot.y
-		reddot2 = new Point(startX*sqfd,startY*sqfd,`test`)
+		reddotView = new Point(startX*sqfd,startY*sqfd,`reddot`)
 		//clear path
 		path = undefined
 		addPointToPath(new Point(startX,startY,`path`))
@@ -198,17 +191,22 @@ var gmoveR = false
 		}
 		return timerID
 	}
-	//create exit
-	function createExit() {
-		if (isDefined(maze)){
-			let cexit = generatePointAtWall(`exit`)
-			if (isDefined(reddot)){
-				return (cexit.is(reddot) ? createExit() : cexit )
-			}else {
-				return cexit
-			} 
+
+	//add point to path
+	function addPointToPath(point){
+		if (isDefined(point)){
+			if (!isDefined(path)){
+				path = new Array()
+			}
+			path.push(new Point(point.x, point.y, `path`))
+		}else {
+			console.log(`point is not defined`)
 		}
 	}
+/*
+}
+	generate game objecs{
+*/
 	//generate random point on the wall
 	function generatePointAtWall(type = undefined){
 		let walls = [`up`,`right`,`down`,`left`]
@@ -247,25 +245,22 @@ var gmoveR = false
 	function  createReddot(){
 		return generatePointAtWall(`reddot`)
 	}
+	//create exit
+	function createExit() {
+		if (isDefined(maze)){
+			let cexit = generatePointAtWall(`exit`)
+			if (isDefined(reddot)){
+				return (cexit.is(reddot) ? createExit() : cexit )
+			}else {
+				return cexit
+			} 
+		}
+	}
+/*
+}
+	special cheecks{
+*/
 	//check if can move from x,y to x1y1
-	// function checkWall(xf, yf, xt, yt){
-	// 	if (isDefined(maze)){
-			
-	// 		if (xf-xt > 0){ //move left
-	// 			return maze.field[yf][xf].left
-	// 		}else if (xf-xt < 0) { //move right
-	// 			return maze.field[yf][xf].right
-	// 		}
-	// 		if (yf-yt > 0){ //move up
-	// 			return maze.field[yf][xf].up
-	// 		}else if (yf-yt < 0) { //move down
-	// 			return maze.field[yf][xf].down
-	// 		}
-	// 	}else {
-	// 		console.log(`maze is not defined`)
-	// 		return false
-	// 	}
-	// }
 	function checkWall(xf, yf, xt, yt){
 		//TODO: check  sides of fiels
 		if (isDefined(maze)){
@@ -359,6 +354,12 @@ var gmoveR = false
 			return false
 		}
 	}
+	//fuzz check for fuzz placement
+	function fuzzCheck(one, two){
+		let delta = 0.1
+		let diff = Math.abs(one - two)
+		return (diff <= delta)
+	}
 	//function for check reddot in event
 	// function checkReddotEvents(){
 	// 	if (isDefined(reddot)){
@@ -373,17 +374,6 @@ var gmoveR = false
 	// 		return false
 	// 	}
 	// }
-	//add point to path
-	function addPointToPath(point){
-		if (isDefined(point)){
-			if (!isDefined(path)){
-				path = new Array()
-			}
-			path.push(new Point(point.x, point.y, `path`))
-		}else {
-			console.log(`point is not defined`)
-		}
-	}
 
 
 /*
@@ -412,29 +402,22 @@ var gmoveR = false
 	//handle keys
 	function handleKeysDown(event){
 		//check what keys are down
-		//do not impact on them
 		if (event.key == `W` || event.key == `w` || event.keyCode == 119 || event.keyCode == 1094 || event.keyCode == 38) { //w
-			//upM = (!downM && !leftM && !rightM) ? true : false
 			upM = true
 		}
 		if (event.key == `S` || event.key == `s` || event.keyCode == 115 || event.keyCode == 1099 || event.keyCode == 40) { //s
-			//downM = (!upM && !leftM && !rightM) ? true : false
 			downM = true
 		}
 		if (event.key == `A` || event.key == `a` || event.keyCode == 97 || event.keyCode == 1092 || event.keyCode == 37) { //a
-			//leftM = (!rightM && !upM && !downM) ? true : false
 			leftM = true
 		}
 		if (event.key == `D` || event.key == `d` || event.keyCode == 100 || event.keyCode == 1074 || event.keyCode == 39) { //d
-			//rightM = (!leftM && !upM && !downM) ? true : false
 			rightM = true
 		}
 	}
 	//handle keys
 	function handleKeysUp(event){
 		//checm what keys are UP
-		//do not impact on them
-		//if (!gmove){
 			if (event.key == `W` || event.key == `w` || event.keyCode == 119 || event.keyCode == 1094 || event.keyCode == 38) { //w
 				upM =  false
 			}
@@ -447,184 +430,18 @@ var gmoveR = false
 			if (event.key == `D` || event.key == `d` || event.keyCode == 100 || event.keyCode == 1074 || event.keyCode == 39) { //d
 				rightM = false
 			}
-		//}
 	}
-	function fuzzCheck(one, two){
-		let delta = 0.3
-		let diff = Math.abs(one - two)
-		return (diff <= delta)
-	}
-	// function handleKeys2(){
-	// 	/*
-	// 		need to rewrite function!
-			
-
-	// 	*/
-	// 	if (isDefined(reddot)) {
-	// 		//let for check if we must move reddot to new sqf
-	// 		let move = false
-	// 		//test
-	// 		if (upM && rightM){
-	// 			if (checkWall2(reddot.x, reddot.y, reddot.x+1, reddot.y-1)){
-	// 				return
-	// 			}
-	// 		}
-	// 		if (rightM && downM){
-	// 			if (checkWall2(reddot.x, reddot.y, reddot.x+1, reddot.y+1)){
-	// 				return
-	// 			}
-	// 		}
-	// 		if (downM && leftM){
-	// 			if (checkWall2(reddot.x, reddot.y, reddot.x-1, reddot.y+1)){
-	// 				return
-	// 			}
-	// 		}
-	// 		if (leftM && upM){
-	// 			if (checkWall2(reddot.x, reddot.y, reddot.x-1, reddot.y-1)){
-	// 				return	
-	// 			}
-	// 		}
-	// 		//check whar keys are pressed
-	// 		if (upM || gmoveU) { //w
-	// 			//? is it right to forbit down move?
-	// 			gmoveD = false
-	// 			//check if can move redot to new sqf
-	// 			if (!checkWall2(reddot.x, reddot.y, reddot.x, reddot.y-1)){
-	// 				//set another var for movement
-	// 				//because we want to have reddot only in sqf
-	// 				//user may throw keyUp
-	// 				//but we must move reddot
-	// 				gmoveU = true
-	// 				//set var for global movement
-	// 				//show if we start some movement when true
-	// 				//shiw if we stop moving when false
-	// 				gmove = true
-	// 				//move second reddot 
-	// 				reddot2.y -= 1
-	// 				//check if movement to new sqf is completed
-	// 				//if (reddot2.y/sqfd == reddot.y -1){
-	// 				if (fuzzCheck(reddot2.y/sqfd, reddot.y -1)){
-	// 					//place second reddot to match true reddot
-	// 					reddot2.y = (reddot.y - 1)*sqfd
-	// 					//set reddot movement to true
-	// 					move = true
-	// 					//set vector of movement
-	// 					moveU = true
-	// 					//show that we stop globl movement
-	// 					gmove = false
-	// 					//upM = false
-	// 					//show that we stop global moving up
-	// 					gmoveU = false
-	// 				}
-	// 			}else{
-	// 				//if we cannot move so save this
-	// 				gmoveU = false
-	// 			}
-	// 		}
-	// 		if (downM || gmoveD) { //s
-	// 			//check if can
-	// 			if (!checkWall2(reddot.x, reddot.y, reddot.x, reddot.y+1)){
-	// 				gmoveD = true
-	// 				gmove = true
-	// 				reddot2.y += 1
-	// 				//if (reddot2.y/sqfd == reddot.y + 1){
-	// 				if (fuzzCheck( reddot2.y/sqfd, reddot.y + 1)) {
-	// 					reddot2.y = (reddot.y + 1)*sqfd
-	// 					move = true
-	// 					moveD = true
-	// 					gmove = false
-	// 					gmoveD = false
-	// 				}
-	// 			}else{
-	// 				gmoveD = false
-	// 			}
-	// 		}
-	// 		if (leftM || gmoveL) { //a
-	// 			gmoveR = false
-	// 			//check if can
-	// 			if (!checkWall2(reddot.x, reddot.y, reddot.x-1, reddot.y)){
-	// 				gmoveL = true
-	// 				gmove = true
-	// 				reddot2.x -= 1
-	// 				//if (reddot2.x/sqfd == reddot.x -1){
-	// 				if (fuzzCheck(reddot2.x/sqfd, reddot.x -1)){
-	// 					reddot2.x = (reddot.x -1)*sqfd
-	// 					move = true
-	// 					moveL = true
-	// 					gmove = (gmoveU || gmoveD) ? true : false
-	// 					gmoveL = false
-	// 				}
-	// 			}else{
-	// 				gmoveL = false
-	// 			}
-	// 		}
-	// 		if (rightM || gmoveR) { //d
-	// 			//check if can
-	// 			if (!checkWall2(reddot.x, reddot.y, reddot.x+1, reddot.y)){
-	// 				gmoveR = true
-	// 				gmove = true
-	// 				reddot2.x += 1
-	// 				//if (reddot2.x/sqfd == reddot.x + 1){
-	// 				if (fuzzCheck(reddot2.x/sqfd, reddot.x + 1)){
-	// 					reddot2.x = (reddot.x + 1)*sqfd
-	// 					move = true
-	// 					moveR = true
-	// 					gmove = false
-	// 					gmove = (gmoveU || gmoveD) ? true : false
-	// 					gmoveR = false
-	// 				}
-	// 			}else{
-	// 				gmoveR = false
-	// 			}
-	// 		}
-	// 		//check that we must move reddot
-	// 		if (move){
-	// 			//check if global movement is over
-	// 			if (!gmove){
-	// 				//check vertor of movement
-	// 				if (moveU) {
-	// 					reddot.y -= 1
-	// 					moveU = false
-	// 					gmoveU = false
-	// 				}
-	// 				if (moveD) {
-	// 					reddot.y += 1
-	// 					moveD = false
-	// 					gmoveD = false
-	// 				}
-	// 				if (moveL) {
-	// 					reddot.x -= 1
-	// 					moveL = false
-	// 					gmoveL = false
-	// 				}
-	// 				if (moveR){
-	// 					reddot.x += 1
-	// 					moveR = false	
-	// 					gmoveR = false
-	// 				}
-
-	// 			}
-	// 			//add point to path
-	// 			addPointToPath(reddot)
-	// 			//check if fovEnh
-	// 			checkFovEnh()
-	// 			if (checkExit()){
-	// 				startMaze()
-	// 			}
-	// 		}
-	// 	}
-	// }
 	function handleKeys(){
 		if (isDefined(reddot)){
 			let move = false
 			if (gmoveU || gmoveR || gmoveD || gmoveL){
 				//continue to move
 				if (gmoveU && gmoveR){
-					reddot2.x += 1
-					reddot2.y -= 1
-					if (fuzzCheck(reddot2.y/sqfd, reddot.y -1) && fuzzCheck(reddot2.x/sqfd, reddot.x + 1)){
-						reddot2.x = (reddot.x + 1)*sqfd
-						reddot2.y = (reddot.y - 1)*sqfd
+					reddotView.x += 1
+					reddotView.y -= 1
+					if (fuzzCheck(reddotView.y/sqfd, reddot.y -1) && fuzzCheck(reddotView.x/sqfd, reddot.x + 1)){
+						reddotView.x = (reddot.x + 1)*sqfd
+						reddotView.y = (reddot.y - 1)*sqfd
 						move = true
 						moveU = true
 						moveR = true
@@ -633,11 +450,11 @@ var gmoveR = false
 					}
 
 				}else if (gmoveR && gmoveD) {
-					reddot2.x += 1
-					reddot2.y += 1
-					if (fuzzCheck(reddot2.x/sqfd, reddot.x + 1) && fuzzCheck( reddot2.y/sqfd, reddot.y + 1)){
-						reddot2.x = (reddot.x + 1)*sqfd
-						reddot2.y = (reddot.y + 1)*sqfd
+					reddotView.x += 1
+					reddotView.y += 1
+					if (fuzzCheck(reddotView.x/sqfd, reddot.x + 1) && fuzzCheck( reddotView.y/sqfd, reddot.y + 1)){
+						reddotView.x = (reddot.x + 1)*sqfd
+						reddotView.y = (reddot.y + 1)*sqfd
 						move = true
 						moveR = true
 						moveD = true
@@ -647,11 +464,11 @@ var gmoveR = false
 					}
 					
 				}else if (gmoveD && gmoveL) {
-					reddot2.x -= 1
-					reddot2.y += 1
-					if (fuzzCheck( reddot2.y/sqfd, reddot.y + 1) && fuzzCheck(reddot2.x/sqfd, reddot.x -1)) {
-						reddot2.x = (reddot.x -1)*sqfd
-						reddot2.y = (reddot.y + 1)*sqfd
+					reddotView.x -= 1
+					reddotView.y += 1
+					if (fuzzCheck( reddotView.y/sqfd, reddot.y + 1) && fuzzCheck(reddotView.x/sqfd, reddot.x -1)) {
+						reddotView.x = (reddot.x -1)*sqfd
+						reddotView.y = (reddot.y + 1)*sqfd
 						move = true
 						moveD = true
 						moveL = true
@@ -660,11 +477,11 @@ var gmoveR = false
 					}
 					
 				}else if (gmoveL && gmoveU) {
-					reddot2.x -= 1
-					reddot2.y -= 1
-					if (fuzzCheck(reddot2.x/sqfd, reddot.x -1) && fuzzCheck(reddot2.y/sqfd, reddot.y -1)){
-						reddot2.x = (reddot.x -1)*sqfd
-						reddot2.y = (reddot.y - 1)*sqfd
+					reddotView.x -= 1
+					reddotView.y -= 1
+					if (fuzzCheck(reddotView.x/sqfd, reddot.x -1) && fuzzCheck(reddotView.y/sqfd, reddot.y -1)){
+						reddotView.x = (reddot.x -1)*sqfd
+						reddotView.y = (reddot.y - 1)*sqfd
 						move = true
 						moveL = true
 						moveU = true
@@ -672,34 +489,34 @@ var gmoveR = false
 						gmoveU = true
 					}
 				}else if (gmoveU) {
-					reddot2.y -= 1
-					if (fuzzCheck(reddot2.y/sqfd, reddot.y -1)){
-						reddot2.y = (reddot.y - 1)*sqfd
+					reddotView.y -= 1
+					if (fuzzCheck(reddotView.y/sqfd, reddot.y -1)){
+						reddotView.y = (reddot.y - 1)*sqfd
 						move = true
 						moveU = true
 						gmoveU = false
 					}
 					
 				}else if (gmoveR) {
-					reddot2.x += 1
-					if (fuzzCheck(reddot2.x/sqfd, reddot.x + 1)){
-						reddot2.x = (reddot.x + 1)*sqfd
+					reddotView.x += 1
+					if (fuzzCheck(reddotView.x/sqfd, reddot.x + 1)){
+						reddotView.x = (reddot.x + 1)*sqfd
 						move = true
 						moveR = true
 						gmoveR = false
 					}
 				}else if (gmoveD) {
-					reddot2.y += 1
-					if (fuzzCheck( reddot2.y/sqfd, reddot.y + 1)) {
-						reddot2.y = (reddot.y + 1)*sqfd
+					reddotView.y += 1
+					if (fuzzCheck( reddotView.y/sqfd, reddot.y + 1)) {
+						reddotView.y = (reddot.y + 1)*sqfd
 						move = true
 						moveD = true
 						gmoveD = false
 					}
 				}else if (gmoveL) {
-					reddot2.x -= 1
-					if (fuzzCheck(reddot2.x/sqfd, reddot.x -1)){
-						reddot2.x = (reddot.x -1)*sqfd
+					reddotView.x -= 1
+					if (fuzzCheck(reddotView.x/sqfd, reddot.x -1)){
+						reddotView.x = (reddot.x -1)*sqfd
 						move = true
 						moveL = true
 						gmoveL = false
@@ -870,17 +687,16 @@ var gmoveR = false
 		}
 		//draw gradient
 		if (isDefined(reddot) && drawFOV){
-			drawFov()
+			drawFov2()
 		}
 		//draw path
 		if (isDefined(path) && drawPath){
 			drawPathLine()
 		}
 		//redraw reddot
-		if (isDefined(reddot2)){
-			drawGreenReddot()
+		if (isDefined(reddotView)){
+			drawreddotView()
 		}
-		drawReddot()
 	}
 	//draw line for path, path is array of points
 	function drawPathLine(){
@@ -943,6 +759,14 @@ var gmoveR = false
 			console.log(`reddot is not defined`)
 		}
 	}
+	//draw foel of view based on reddot smooth view
+	function drawFov2(){
+		if (isDefined(reddotView)){
+			drawGradient2(reddotView)
+		}else {
+			console.log(`reddotView is not defiend`)
+		}
+	}
 	//draw all maze
 	function drawMaze(){
 		if (isDefined(maze)){
@@ -992,9 +816,10 @@ var gmoveR = false
 			console.log(`reddot is not defined`)
 		}
 	}
-	function drawGreenReddot(){
-		if (isDefined(reddot2)){
-			drawCircle(reddot2.x + sqfd/2, reddot2.y + sqfd/2 , (sqfd-5)/2, false)
+	//draw reddot smooth view
+	function drawreddotView(){
+		if (isDefined(reddotView)){
+			drawCircle(reddotView.x + sqfd/2, reddotView.y + sqfd/2 , (sqfd-5)/2, true)
 		}else {
 			console.log(`redot is not defined`)
 		}
@@ -1032,7 +857,7 @@ var gmoveR = false
 			console.log(`ctx is not defined`)
 		}
 	}
-	//draw radialGradient for on point
+	//draw radialGradient for on point based on sqf
 	function drawGradient(point){
 		let ctx = getCtx()
 		if (isDefined(ctx))	{
@@ -1049,6 +874,24 @@ var gmoveR = false
 		}else {
 			console.log(`ctx is not defined`)
 		}
+	}
+	//draw radial gradient based on canvas position
+	function drawGradient2(point){
+		let ctx = getCtx()
+		if (isDefined(ctx))	{
+			ctx.beginPath() 
+			let gradient = undefined
+			// centerx inner, centery inner, radius inner, centerx outer, centery outer, radius outer
+			ctx.globalCompositeOperation = 'darken';
+			gradient = ctx.createRadialGradient(point.x + sqfd/2, point.y + sqfd/2, sqfd*fovRM, point.x + sqfd/2, point.y + sqfd/2, sqfd*(fovRM*2))
+			gradient.addColorStop(0, `white`) //from
+			gradient.addColorStop(1, `black`) //to
+			ctx.fillStyle = gradient
+			ctx.fillRect(0, 0, cwidth, cheight)
+			ctx.save()
+		}else {
+			console.log(`ctx is not defined`)
+		}	
 	}
 
 	//draw circle, has option for reddot
