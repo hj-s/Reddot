@@ -1,5 +1,6 @@
 //arrow functions
 const isDefined = (check) => (check !== undefined)
+const round = (x) =>  (Math.round(x * 1000) / 1000)
 
 //variables for canvas && square diameter
 const sqfX = 40
@@ -33,7 +34,6 @@ var reddotView = undefined
 
 //variables for draw some stuff
 var drawFOV = true
-var drawExitC = true
 var drawPath = true
 
 //ns
@@ -79,59 +79,68 @@ var gmoveR = false
 
 	//int
 	function init(){
-		let canvas = document.getElementById(`field`)
-		if (canvas.getContext) {
+		initCanvas(`field2`)
+		
+		initCanvas(`field`)
 			
+		initListeners()
+
+		forDebug()
+		
+		createAnimFrame()
+			
+		//startMaze
+		startMaze()
+
+		drawLoop()
+	}
+	function initCanvas(canvasID){
+		let canvas = document.getElementById(canvasID)
+		if (canvas.getContext) {
 			//set canvase size
 			canvas.height = cheight
 			canvas.width = cwidth
-			//test
-			// canvas.width = window.innerWidth;
-   //          canvas.height = window.innerHeight;
-
-			//get context
-			let ctx = canvas.getContext(`2d`)
-			ctx.save()
-			
-			//add keypress listener
-			let d = document
-			d.addEventListener(`keydown`, handleKeysDown)
-			d.addEventListener(`keyup`, handleKeysUp)
-
-			if (debug){
-				let controlBox = d.getElementById(`controls`)
+		} else {
+			alert(`Your browser does not support canvas`)
+		}
+	}
+	function initListeners(){
+		//add keypress listener
+		if (isDefined(document)) {
+			document.addEventListener(`keydown`, handleKeysDown)
+			document.addEventListener(`keyup`, handleKeysUp)
+		}
+	}
+	function createAnimFrame(){
+		if (isDefined(window)){
+			window.requestAnimFrame = (
+					function(){
+						return  window.requestAnimationFrame       ||
+								window.webkitRequestAnimationFrame ||
+								window.mozRequestAnimationFrame    ||
+								function( callback ){
+									window.setTimeout(callback, 1000 / 60);
+								};
+			})();
+		}
+	}
+	function forDebug(){
+		if (debug){
+			if (isDefined(document)) {
+				let controlBox = document.getElementById(`controls`)
 				if (isDefined(controlBox)) { controlBox.style.visibility = `visible` }
-				let pathCb = d.getElementById(`path`)
+				let pathCb = document.getElementById(`path`)
 				if (isDefined(pathCb)){
 					//add listener
 					pathCb.addEventListener(`change`, handlePathCb)
 				}
 
-				let fovCb = d.getElementById(`fov`)
+				let fovCb = document.getElementById(`fov`)
 				if (isDefined(fovCb)){
 					fovCb.addEventListener(`change`, handleFovCb)
 					fovCb.style.visibility = `visible`
 				}
 			}
-			if (isDefined(window)){
-				window.requestAnimFrame = (
-						function(){
-							return  window.requestAnimationFrame       ||
-									window.webkitRequestAnimationFrame ||
-									window.mozRequestAnimationFrame    ||
-									function( callback ){
-										window.setTimeout(callback, 1000 / 60);
-									};
-				})();
-			}
-
-				
-			//startMaze
-			startMaze()
-			drawLoop()
-
-		} else {
-			alert(`Your browser does not support canvas`)
 		}
 	}
 	//create maze & reddot
@@ -159,12 +168,14 @@ var gmoveR = false
 		for (let i = 0; i < fovEnhArr.length; i++){
 			fovEnhArr[i] = generatePoint(`fovEnh`)
 		}
+
+		drawStatic(`field2`)
 	}
 
 	// animation loop
 	function drawLoop(){
-		requestAnimFrame(drawLoop);
 		draw();
+		requestAnimFrame(drawLoop);
 	}
 
 /*
@@ -273,16 +284,28 @@ var gmoveR = false
 				//to corner
 				if (diffX > 0 && diffY > 0){
 					//up-left
-					return maze.field[yt][xt].down && maze.field[yt][xt].right || maze.field[yf][xf].up && maze.field[yf][xf].left || maze.field[yf][xf].up && maze.field[yt][xt].down || maze.field[yf][xf].left && maze.field[yt][xt].right
+					return maze.field[yt][xt].down && maze.field[yt][xt].right 
+						|| maze.field[yf][xf].up && maze.field[yf][xf].left 
+						|| maze.field[yf][xf].up && maze.field[yt][xt].down 
+						|| maze.field[yf][xf].left && maze.field[yt][xt].right
 				}else if (diffX < 0 && diffY < 0) {
 					//down-right
-					return maze.field[yt][xt].up && maze.field[yt][xt].left || maze.field[yf][xf].down && maze.field[yf][xf].right || maze.field[yf][xf].down && maze.field[yt][xt].up || maze.field[yf][xf].right && maze.field[yt][xt].left
+					return maze.field[yt][xt].up && maze.field[yt][xt].left 
+						|| maze.field[yf][xf].down && maze.field[yf][xf].right 
+						|| maze.field[yf][xf].down && maze.field[yt][xt].up 
+						|| maze.field[yf][xf].right && maze.field[yt][xt].left
 				}else if (diffX > 0 && diffY < 0) {
 					//down-left
-					return maze.field[yt][xt].up && maze.field[yt][xt].right || maze.field[yf][xf].down && maze.field[yf][xf].left || maze.field[yf][xf].down && maze.field[yt][xt].up || maze.field[yf][xf].left && maze.field[yt][xt].right
+					return maze.field[yt][xt].up && maze.field[yt][xt].right 
+						|| maze.field[yf][xf].down && maze.field[yf][xf].left 
+						|| maze.field[yf][xf].down && maze.field[yt][xt].up 
+						|| maze.field[yf][xf].left && maze.field[yt][xt].right
 				}else if (diffX < 0 && diffY > 0) {
 					//up-right
-					return maze.field[yt][xt].down && maze.field[yt][xt].left || maze.field[yf][xf].up && maze.field[yf][xf].right || maze.field[yf][xf].up && maze.field[yt][xt].down || maze.field[yf][xf].right && maze.field[yt][xt].left
+					return maze.field[yt][xt].down && maze.field[yt][xt].left 
+						|| maze.field[yf][xf].up && maze.field[yf][xf].right 
+						|| maze.field[yf][xf].up && maze.field[yt][xt].down 
+						|| maze.field[yf][xf].right && maze.field[yt][xt].left
 				}
 
 			}else if (Math.abs(diffX) != 0 && Math.abs(diffY) == 0 ) {
@@ -635,12 +658,11 @@ var gmoveR = false
 	functions with canvas {
 */
 
-	//get canvas context to draw
-	function getCtx(){
-		let canvas = document.getElementById(`field`)
+	function getCtx(id){
+		let canvas = document.getElementById(id)
 		if (isDefined(canvas)){
 			if (canvas.getContext){
-				let ctx = canvas.getContext(`2d`)
+				let ctx  = canvas.getContext(`2d`, { alpha: false })//alfa: false for optimization
 				ctx.restore()
 				return ctx
 			}else {
@@ -649,13 +671,14 @@ var gmoveR = false
 			}	
 		}else {
 			console.log(`canvas is not defined`)
+			return undefined
 		}
 	}
 	//clear canvas for new draw
-	function clearCanvas(){
-		let ctx = getCtx()
+	function clearCanvas(canvasID){
+		let ctx = getCtx(canvasID)
 		if (isDefined(ctx)){
-			let canvas = document.getElementById(`field`)
+			let canvas = document.getElementById(canvasID)
 			//some odd way to clear canvas
 			ctx.clearRect(0, 0, canvas.width, canvas.height) 
 			ctx.save()
@@ -670,37 +693,50 @@ var gmoveR = false
 */
 
 	//main draw
-	function draw(){
+	function draw(test = false){
+		let canvasID = `field`
+		let time
+		if (test){
+			time = isDefined(performance) ? performance.now() : 0
+		}
 		//clear canvas
-		clearCanvas()
+		clearCanvas(canvasID)
 		handleKeys()
 		//draw exit
-		if (isDefined(exit) && drawExitC){
-			drawExit()
+		if (isDefined(exit)){
+			drawExit(canvasID)
 		}
 		for (let i = 0; i < fovEnhArr.length; i++){
-			drawFovEnh(fovEnhArr[i])
-		}
-		//redraw maze
-		if (isDefined(maze)){
-			drawMaze()
+			drawFovEnh(fovEnhArr[i], canvasID)
 		}
 		//draw gradient
 		if (isDefined(reddot) && drawFOV){
-			drawFov2()
+			drawFov(canvasID)
 		}
 		//draw path
 		if (isDefined(path) && drawPath){
-			drawPathLine()
+			drawPathLine(canvasID)
 		}
 		//redraw reddot
 		if (isDefined(reddotView)){
-			drawreddotView()
+			drawreddotView(canvasID)
+		}
+		if (test){
+			time = isDefined(performance) ? performance.now() - time : 0
+			console.log(` time: ${round(time)}`)
+		}
+	}
+	function drawStatic(canvasID){
+		clearCanvas(canvasID)
+
+		//redraw maze
+		if (isDefined(maze)){
+			drawMaze(canvasID)
 		}
 	}
 	//draw line for path, path is array of points
-	function drawPathLine(){
-		let ctx = getCtx()
+	function drawPathLine(canvasID){
+		let ctx = getCtx(canvasID)
 		if (isDefined(ctx)){
 			if (isDefined(path) && drawPath){
 				ctx.beginPath()
@@ -711,6 +747,7 @@ var gmoveR = false
 					ctx.lineTo(path[i].x*sqfd + sqfd/2, path[i].y*sqfd + sqfd/2)	
 				}
 				ctx.stroke()
+				ctx.closePath()
 				ctx.save()
 			}
 		}else {
@@ -718,11 +755,10 @@ var gmoveR = false
 		}
 	}
 	//draw square for exit
-	function drawExit(){
+	function drawExit(canvasID){
 		if (isDefined(exit)){
-			let ctx = getCtx()
+			let ctx = getCtx(canvasID)
 			if (isDefined(ctx)){
-				ctx.beginPath()
 				ctx.strokeStyle = `red`
 				ctx.globalCompositeOperation = `source-over`
 				ctx.strokeRect(exit.x*sqfd + sqfd/4, exit.y*sqfd + sqfd/4 ,sqfd/2,sqfd/2)
@@ -735,11 +771,10 @@ var gmoveR = false
 		}
 	}
 	//draw green square for fovEnh
-	function drawFovEnh(point){
+	function drawFovEnh(point, canvasID){
 		if (isDefined(point)){
-			let ctx = getCtx()
+			let ctx = getCtx(canvasID)
 			if (isDefined(ctx)){
-				ctx.beginPath()
 				ctx.strokeStyle = `green`
 				ctx.globalCompositeOperation = `source-over`
 				ctx.strokeRect(point.x*sqfd + sqfd/4, point.y*sqfd + sqfd/4 ,sqfd/2,sqfd/2)
@@ -751,55 +786,57 @@ var gmoveR = false
 			console.log(`point is not defined`)
 		}
 	}
-	//draw field of view using gradient
-	function drawFov(){
-		if (isDefined(reddot)){
-			drawGradient(reddot)
-		}else {
-			console.log(`reddot is not defined`)
-		}
-	}
 	//draw foel of view based on reddot smooth view
-	function drawFov2(){
+	function drawFov(canvasID){
 		if (isDefined(reddotView)){
-			drawGradient2(reddotView)
+			drawGradient2(reddotView, canvasID)
 		}else {
 			console.log(`reddotView is not defiend`)
 		}
 	}
 	//draw all maze
-	function drawMaze(){
+	function drawMaze(canvasID){
 		if (isDefined(maze)){
-			let ctx = getCtx()
+			let ctx = getCtx(canvasID)
 			ctx.strokeStyle = `black`
 			if (isDefined(ctx)){
 				let lstartX = 0
 				let lstartY = 0
+				//test
+				ctx.beginPath()
+				ctx.strokeStyle = `black`
+				ctx.globalCompositeOperation = `source-over`
 				for (let i = 0; i < maze.height; i++){
 					for (let j = 0; j < maze.width; j++){
 						//we can remove some draws of lines due to i's right = i+1's left
 						//someday...
 						if (maze.field[i][j].up){
-							drawLine(lstartX, lstartY, lstartX + sqfd, lstartY)
+							ctx.moveTo(lstartX, lstartY)
+							ctx.lineTo(lstartX + sqfd, lstartY)
 						}
 						if (maze.field[i][j].right){
-							drawLine(lstartX + sqfd, lstartY, lstartX + sqfd, lstartY + sqfd)
+							ctx.moveTo(lstartX + sqfd, lstartY)
+							ctx.lineTo(lstartX + sqfd, lstartY + sqfd)
 						}
-						if (maze.field[i][j].down){
-							drawLine(lstartX, lstartY + sqfd, lstartX + sqfd, lstartY + sqfd)
-						}
-						if (maze.field[i][j].left){
-							drawLine(lstartX, lstartY, lstartX, lstartY + sqfd)
-						}
+						// if (maze.field[i][j].down){
+						// 	ctx.moveTo(lstartX, lstartY + sqfd)
+						// 	ctx.lineTo(lstartX + sqfd, lstartY + sqfd)
+						// }
+						// if (maze.field[i][j].left){
+						// 	ctx.moveTo(lstartX, lstartY)
+						// 	ctx.lineTo(lstartX, lstartY + sqfd)
+						// }
 						//show index for debug
-						if (debug && false){ 
-							drawText(lstartX + sqfd/8 , lstartY + sqfd/2, maze.field[i][j].index)
-						}
+						// if (debug && false){ 
+						// 	drawText(lstartX + sqfd/8 , lstartY + sqfd/2, maze.field[i][j].index)
+						// }
 						lstartX += sqfd
 					}
 					lstartX = 0
 					lstartY += sqfd
 				}
+				ctx.closePath()
+				ctx.stroke()
 				ctx.save()
 			}else {
 				console.log(`ctx is not defined`)
@@ -809,17 +846,17 @@ var gmoveR = false
 		}
 	}
 	//draw reddot
-	function drawReddot(){
+	function drawReddot(canvasID){
 		if (isDefined(reddot)){
-			drawCircle(sqfd*reddot.x + sqfd/2, sqfd*reddot.y + sqfd/2 , (sqfd-5)/2, true)
+			drawCircle(sqfd*reddot.x + sqfd/2, sqfd*reddot.y + sqfd/2 , (sqfd-5)/2, true, canvasID)
 		}else {
 			console.log(`reddot is not defined`)
 		}
 	}
 	//draw reddot smooth view
-	function drawreddotView(){
+	function drawreddotView(canvasID){
 		if (isDefined(reddotView)){
-			drawCircle(reddotView.x + sqfd/2, reddotView.y + sqfd/2 , (sqfd-5)/2, true)
+			drawCircle(reddotView.x + sqfd/2, reddotView.y + sqfd/2 , (sqfd-5)/2, true, canvasID)
 		}else {
 			console.log(`redot is not defined`)
 		}
@@ -831,10 +868,9 @@ var gmoveR = false
 */
 
 	//draw text from left-up corner
-	function drawText( lstartX = 0, lstartY = 0,  text){
-		let ctx = getCtx()
+	function drawText( lstartX = 0, lstartY = 0,  text, canvasID){
+		let ctx = getCtx(canvasID)
 		if (isDefined(ctx)){
-			ctx.beginPath()
 			ctx.font = `6px`
 			ctx.fillStyle = `black`
 			ctx.fillText(text, lstartX, lstartY)
@@ -844,42 +880,24 @@ var gmoveR = false
 		}
 	}
 	//draw simple line
-	function drawLine(lstartX = 0, lstartY = 0, endX, endY){
-		let ctx = getCtx()
+	function drawLine(lstartX = 0, lstartY = 0, endX, endY, canvasID){
+		let ctx = getCtx(canvasID)
 		if (isDefined(ctx)){
 			ctx.beginPath()
 			ctx.strokeStyle = `black`
 			ctx.moveTo(lstartX, lstartY)
 			ctx.lineTo(endX, endY)
+			ctx.closePath()
 			ctx.stroke()
 			ctx.save()
 		}else {
 			console.log(`ctx is not defined`)
 		}
 	}
-	//draw radialGradient for on point based on sqf
-	function drawGradient(point){
-		let ctx = getCtx()
-		if (isDefined(ctx))	{
-			ctx.beginPath() 
-			let gradient = undefined
-			// centerx inner, centery inner, radius inner, centerx outer, centery outer, radius outer
-			ctx.globalCompositeOperation = 'darken';
-			gradient = ctx.createRadialGradient(sqfd*point.x + sqfd/2, sqfd*point.y + sqfd/2, sqfd*fovRM, sqfd*point.x + sqfd/2, sqfd*point.y + sqfd/2, sqfd*(fovRM*2))
-			gradient.addColorStop(0, `white`) //from
-			gradient.addColorStop(1, `black`) //to
-			ctx.fillStyle = gradient
-			ctx.fillRect(0, 0, cwidth, cheight)
-			ctx.save()
-		}else {
-			console.log(`ctx is not defined`)
-		}
-	}
 	//draw radial gradient based on canvas position
-	function drawGradient2(point){
-		let ctx = getCtx()
+	function drawGradient2(point, canvasID){
+		let ctx = getCtx(canvasID)
 		if (isDefined(ctx))	{
-			ctx.beginPath() 
 			let gradient = undefined
 			// centerx inner, centery inner, radius inner, centerx outer, centery outer, radius outer
 			ctx.globalCompositeOperation = 'darken';
@@ -895,18 +913,18 @@ var gmoveR = false
 	}
 
 	//draw circle, has option for reddot
-	function drawCircle(centerX, centerY, radius, reddot = false){
-		let ctx = getCtx()
+	function drawCircle(centerX, centerY, radius, reddot = false, canvasID){
+		let ctx = getCtx(canvasID)
 		if (isDefined(ctx)){
 			ctx.beginPath()
 			ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI)
 			if (reddot) { 
 				ctx.fillStyle = `red` 
-				ctx.fill()
 			} else{
 				ctx.fillStyle = `green` 
-				ctx.fill()
 			}
+			ctx.closePath()
+			ctx.fill()
 			ctx.save()
 		}else {
 			console.log(`ctx is not defined`)
@@ -971,7 +989,7 @@ var gmoveR = false
 	  				break
 	  		}
 		  	time = isDefined(performance) ? performance.now() - time : 0
-			console.log(type + ` time: ` + time)
+			console.log(type + ` time: ${round(time)}`)
 	  		//borders are the same
 	  		//fill borders horizontal
 			for (let i = 0; i < this.height; i++){
