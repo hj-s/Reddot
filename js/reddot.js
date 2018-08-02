@@ -10,6 +10,9 @@ const sqfd = 20
 const cwidth = sqfX*sqfd
 const cheight = sqfY*sqfd
 
+const topCanvas = `field`
+const backCanvas = 'field2'
+
 //start pos for reddot
 var startX = 0
 var startY = 0
@@ -39,6 +42,9 @@ var drawPath = true
 //ns
 var debug = true
 
+//movement
+var speed = 1
+
 var leftM = false
 var rightM = false
 var upM = false
@@ -55,8 +61,14 @@ var gmoveD = false
 var gmoveL = false
 var gmoveR = false
 
+
+
 /*
 	TODO list:
+	- add speed events 
+		make them diissapear after 10s
+		timer does not stack
+		and dissapear after new maze is created
 
 */
 
@@ -79,9 +91,9 @@ var gmoveR = false
 
 	//int
 	function init(){
-		initCanvas(`field2`)
+		initCanvas(backCanvas)
 		
-		initCanvas(`field`)
+		initCanvas(topCanvas)
 			
 		initListeners()
 
@@ -100,6 +112,14 @@ var gmoveR = false
 			//set canvase size
 			canvas.height = cheight
 			canvas.width = cwidth
+			let ctx  = canvas.getContext(`2d`, { alpha: false })
+			ctx.globalAlpha = 1
+			ctx.lineCap = 'round'
+			ctx.lineJoin = 'round'
+			ctx.lineWidth = 2
+			ctx.globalCompositeOperation = `source-over`
+			ctx.save()
+
 		} else {
 			alert(`Your browser does not support canvas`)
 		}
@@ -169,12 +189,12 @@ var gmoveR = false
 			fovEnhArr[i] = generatePoint(`fovEnh`)
 		}
 
-		drawStatic(`field2`)
+		drawStatic(backCanvas)
 	}
 
 	// animation loop
 	function drawLoop(){
-		draw();
+		draw(topCanvas);
 		requestAnimFrame(drawLoop);
 	}
 
@@ -409,7 +429,7 @@ var gmoveR = false
 		if (isDefined(event)){
 			if (drawPath != event.target.checked){
 				drawPath = event.target.checked
-				draw()
+				draw(topCanvas)
 			}
 		}
 	}
@@ -418,39 +438,39 @@ var gmoveR = false
 		if (isDefined(event)){
 			if (drawFOV != event.target.checked){
 				drawFOV = event.target.checked
-				draw()
+				draw(topCanvas)
 			}
 		}
 	}
 	//handle keys
 	function handleKeysDown(event){
 		//check what keys are down
-		if (event.key == `W` || event.key == `w` || event.keyCode == 119 || event.keyCode == 1094 || event.keyCode == 38) { //w
+		if (event.key == `W` || event.key == `w` || event.keyCode == 119 || event.keyCode == 87 || event.keyCode == 38) { //w
 			upM = true
 		}
-		if (event.key == `S` || event.key == `s` || event.keyCode == 115 || event.keyCode == 1099 || event.keyCode == 40) { //s
+		if (event.key == `S` || event.key == `s` || event.keyCode == 115 || event.keyCode == 83 || event.keyCode == 40) { //s
 			downM = true
 		}
-		if (event.key == `A` || event.key == `a` || event.keyCode == 97 || event.keyCode == 1092 || event.keyCode == 37) { //a
+		if (event.key == `A` || event.key == `a` || event.keyCode == 97 || event.keyCode == 65 || event.keyCode == 37) { //a
 			leftM = true
 		}
-		if (event.key == `D` || event.key == `d` || event.keyCode == 100 || event.keyCode == 1074 || event.keyCode == 39) { //d
+		if (event.key == `D` || event.key == `d` || event.keyCode == 100 || event.keyCode == 68 || event.keyCode == 39) { //d
 			rightM = true
 		}
 	}
 	//handle keys
 	function handleKeysUp(event){
 		//checm what keys are UP
-			if (event.key == `W` || event.key == `w` || event.keyCode == 119 || event.keyCode == 1094 || event.keyCode == 38) { //w
+			if (event.key == `W` || event.key == `w` || event.keyCode == 119 || event.keyCode == 87 || event.keyCode == 38) { //w
 				upM =  false
 			}
-			if (event.key == `S` || event.key == `s` || event.keyCode == 115 || event.keyCode == 1099 || event.keyCode == 40) { //s
+			if (event.key == `S` || event.key == `s` || event.keyCode == 115 || event.keyCode == 83 || event.keyCode == 40) { //s
 				downM = false
 			}
-			if (event.key == `A` || event.key == `a` || event.keyCode == 97 || event.keyCode == 1092 || event.keyCode == 37) { //a
+			if (event.key == `A` || event.key == `a` || event.keyCode == 97 || event.keyCode == 65 || event.keyCode == 37) { //a
 				leftM = false
 			}
-			if (event.key == `D` || event.key == `d` || event.keyCode == 100 || event.keyCode == 1074 || event.keyCode == 39) { //d
+			if (event.key == `D` || event.key == `d` || event.keyCode == 100 || event.keyCode == 68 || event.keyCode == 39) { //d
 				rightM = false
 			}
 	}
@@ -460,8 +480,8 @@ var gmoveR = false
 			if (gmoveU || gmoveR || gmoveD || gmoveL){
 				//continue to move
 				if (gmoveU && gmoveR){
-					reddotView.x += 1
-					reddotView.y -= 1
+					reddotView.x += speed
+					reddotView.y -= speed
 					if (fuzzCheck(reddotView.y/sqfd, reddot.y -1) && fuzzCheck(reddotView.x/sqfd, reddot.x + 1)){
 						reddotView.x = (reddot.x + 1)*sqfd
 						reddotView.y = (reddot.y - 1)*sqfd
@@ -473,8 +493,8 @@ var gmoveR = false
 					}
 
 				}else if (gmoveR && gmoveD) {
-					reddotView.x += 1
-					reddotView.y += 1
+					reddotView.x += speed
+					reddotView.y += speed
 					if (fuzzCheck(reddotView.x/sqfd, reddot.x + 1) && fuzzCheck( reddotView.y/sqfd, reddot.y + 1)){
 						reddotView.x = (reddot.x + 1)*sqfd
 						reddotView.y = (reddot.y + 1)*sqfd
@@ -487,8 +507,8 @@ var gmoveR = false
 					}
 					
 				}else if (gmoveD && gmoveL) {
-					reddotView.x -= 1
-					reddotView.y += 1
+					reddotView.x -= speed
+					reddotView.y += speed
 					if (fuzzCheck( reddotView.y/sqfd, reddot.y + 1) && fuzzCheck(reddotView.x/sqfd, reddot.x -1)) {
 						reddotView.x = (reddot.x -1)*sqfd
 						reddotView.y = (reddot.y + 1)*sqfd
@@ -500,8 +520,8 @@ var gmoveR = false
 					}
 					
 				}else if (gmoveL && gmoveU) {
-					reddotView.x -= 1
-					reddotView.y -= 1
+					reddotView.x -= speed
+					reddotView.y -= speed
 					if (fuzzCheck(reddotView.x/sqfd, reddot.x -1) && fuzzCheck(reddotView.y/sqfd, reddot.y -1)){
 						reddotView.x = (reddot.x -1)*sqfd
 						reddotView.y = (reddot.y - 1)*sqfd
@@ -512,7 +532,7 @@ var gmoveR = false
 						gmoveU = true
 					}
 				}else if (gmoveU) {
-					reddotView.y -= 1
+					reddotView.y -= speed
 					if (fuzzCheck(reddotView.y/sqfd, reddot.y -1)){
 						reddotView.y = (reddot.y - 1)*sqfd
 						move = true
@@ -521,7 +541,7 @@ var gmoveR = false
 					}
 					
 				}else if (gmoveR) {
-					reddotView.x += 1
+					reddotView.x += speed
 					if (fuzzCheck(reddotView.x/sqfd, reddot.x + 1)){
 						reddotView.x = (reddot.x + 1)*sqfd
 						move = true
@@ -529,7 +549,7 @@ var gmoveR = false
 						gmoveR = false
 					}
 				}else if (gmoveD) {
-					reddotView.y += 1
+					reddotView.y += speed
 					if (fuzzCheck( reddotView.y/sqfd, reddot.y + 1)) {
 						reddotView.y = (reddot.y + 1)*sqfd
 						move = true
@@ -537,7 +557,7 @@ var gmoveR = false
 						gmoveD = false
 					}
 				}else if (gmoveL) {
-					reddotView.x -= 1
+					reddotView.x -= speed
 					if (fuzzCheck(reddotView.x/sqfd, reddot.x -1)){
 						reddotView.x = (reddot.x -1)*sqfd
 						move = true
@@ -678,9 +698,8 @@ var gmoveR = false
 	function clearCanvas(canvasID){
 		let ctx = getCtx(canvasID)
 		if (isDefined(ctx)){
-			let canvas = document.getElementById(canvasID)
 			//some odd way to clear canvas
-			ctx.clearRect(0, 0, canvas.width, canvas.height) 
+			ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height) 
 			ctx.save()
 		}else {
 			console.log(`ctx is not defined`)
@@ -693,8 +712,8 @@ var gmoveR = false
 */
 
 	//main draw
-	function draw(test = false){
-		let canvasID = `field`
+	function draw(canvasID, test = false){
+		//let canvasID = topCanvas
 		let time
 		if (test){
 			time = isDefined(performance) ? performance.now() : 0
@@ -805,7 +824,7 @@ var gmoveR = false
 				//test
 				ctx.beginPath()
 				ctx.strokeStyle = `black`
-				ctx.globalCompositeOperation = `source-over`
+				//ctx.globalCompositeOperation = `destination-over`
 				for (let i = 0; i < maze.height; i++){
 					for (let j = 0; j < maze.width; j++){
 						//we can remove some draws of lines due to i's right = i+1's left
@@ -818,14 +837,14 @@ var gmoveR = false
 							ctx.moveTo(lstartX + sqfd, lstartY)
 							ctx.lineTo(lstartX + sqfd, lstartY + sqfd)
 						}
-						// if (maze.field[i][j].down){
-						// 	ctx.moveTo(lstartX, lstartY + sqfd)
-						// 	ctx.lineTo(lstartX + sqfd, lstartY + sqfd)
-						// }
-						// if (maze.field[i][j].left){
-						// 	ctx.moveTo(lstartX, lstartY)
-						// 	ctx.lineTo(lstartX, lstartY + sqfd)
-						// }
+						if (maze.field[i][j].down && i == maze.height - 1 ){
+							ctx.moveTo(lstartX, lstartY + sqfd)
+							ctx.lineTo(lstartX + sqfd, lstartY + sqfd)
+						}
+						if (maze.field[i][j].left && j == 0){
+							ctx.moveTo(lstartX, lstartY)
+							ctx.lineTo(lstartX, lstartY + sqfd)
+						}
 						//show index for debug
 						// if (debug && false){ 
 						// 	drawText(lstartX + sqfd/8 , lstartY + sqfd/2, maze.field[i][j].index)
@@ -900,10 +919,14 @@ var gmoveR = false
 		if (isDefined(ctx))	{
 			let gradient = undefined
 			// centerx inner, centery inner, radius inner, centerx outer, centery outer, radius outer
-			ctx.globalCompositeOperation = 'darken';
+			//ctx.globalCompositeOperation = 'darken';
+			//destination-over
+			ctx.globalCompositeOperation = 'darken'
 			gradient = ctx.createRadialGradient(point.x + sqfd/2, point.y + sqfd/2, sqfd*fovRM, point.x + sqfd/2, point.y + sqfd/2, sqfd*(fovRM*2))
 			gradient.addColorStop(0, `white`) //from
 			gradient.addColorStop(1, `black`) //to
+			//gradient.addColorStop(0, "rgba(255, 255, 255, 0.5)");
+			//gradient.addColorStop(1, "rgba(0, 0, 0, 1.0)");
 			ctx.fillStyle = gradient
 			ctx.fillRect(0, 0, cwidth, cheight)
 			ctx.save()
@@ -945,6 +968,25 @@ var gmoveR = false
 		}
 		is(point){
 			return (this.x == point.x && this.y == point.y)
+		}
+		render(ctx){
+			if (isDefined(ctx)){
+				switch (this.type) {
+					case `reddot`:
+						this.renderReddotView(ctx)
+						break
+					default:
+						break
+				}
+				ctx.save()
+			}
+		}
+		renderReddotView(ctx){
+				ctx.beginPath()
+				ctx.fillStyle = `red` 
+				ctx.arc(this.x , this.y , (sqfd-5)/2 , 0, 2 * Math.PI)
+				ctx.closePath()
+				ctx.fill()
 		}
 	}
 	//square to fill maze
