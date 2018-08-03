@@ -33,8 +33,9 @@ var maze = undefined
 var reddot = undefined
 var exit = undefined
 var fovEnhArr = undefined
-//var pointArray = undefined
 var reddotView = undefined
+
+var globalContext = undefined
 
 //variables for draw some stuff
 var drawFOVi = true
@@ -101,12 +102,14 @@ var gmoveR = false
 
 		forDebug()
 		
-		createAnimFrame()
-			
+		//createAnimFrame()
+		
+		globalContext = new contextHandler(backCanvas, middleCanvas, topCanvas)
+
 		//startMaze
 		startMaze()
 
-		drawLoop()
+		requestAnimationFrame(drawLoop)
 	}
 	function initCanvas(canvasID){
 		let canvas = document.getElementById(canvasID)
@@ -115,6 +118,7 @@ var gmoveR = false
 			canvas.height = cheight
 			canvas.width = cwidth
 			let ctx  = canvas.getContext(`2d`, { alpha: false })
+			ctx.beginPath()
 			ctx.globalAlpha = 1
 			ctx.lineCap = 'round'
 			ctx.lineJoin = 'round'
@@ -133,19 +137,20 @@ var gmoveR = false
 			document.addEventListener(`keyup`, handleKeysUp)
 		}
 	}
-	function createAnimFrame(){
-		if (isDefined(window)){
-			window.requestAnimFrame = (
-					function(){
-						return  window.requestAnimationFrame       ||
-								window.webkitRequestAnimationFrame ||
-								window.mozRequestAnimationFrame    ||
-								function( callback ){
-									window.setTimeout(callback, 1000 / 60);
-								};
-			})();
-		}
-	}
+	// function createAnimFrame(){
+	// 	if (isDefined(window)){
+	// 		// window.requestAnimFrame = (
+	// 		// 		function(){
+	// 		// 			return  window.requestAnimationFrame       ||
+	// 		// 					window.webkitRequestAnimationFrame ||
+	// 		// 					window.mozRequestAnimationFrame    ||
+	// 		// 					function( callback ){
+	// 		// 						window.setTimeout(callback, 1000 / 60);
+	// 		// 					};
+	// 		// })();
+	// 		//drawLoop()
+	// 	}
+	// }
 	function forDebug(){
 		if (debug){
 			if (isDefined(document)) {
@@ -195,9 +200,8 @@ var gmoveR = false
 
 	// animation loop
 	function drawLoop(){
-	  	draw(backCanvas)
-		draw2(topCanvas)	
-		requestAnimFrame(drawLoop)
+		requestAnimationFrame(drawLoop)
+	  	draw()
 	}
 
 /*
@@ -366,7 +370,6 @@ var gmoveR = false
 		if (isDefined(event)){
 			if (drawPath != event.target.checked){
 				drawPath = event.target.checked
-				draw2(topCanvas)
 			}
 		}
 	}
@@ -375,7 +378,6 @@ var gmoveR = false
 		if (isDefined(event)){
 			if (drawFOVi != event.target.checked){
 				drawFOVi = event.target.checked
-				draw(backCanvas)
 			}
 		}
 	}
@@ -508,7 +510,6 @@ var gmoveR = false
 					if (!checkWall(reddot.x, reddot.y, reddot.x+1, reddot.y-1)){
 						gmoveU = gmoveR = true
 					}
-
 				}else if (rightM && downM) {
 					if (!checkWall(reddot.x, reddot.y, reddot.x+1, reddot.y+1)){
 						gmoveR = gmoveD = true
@@ -523,7 +524,6 @@ var gmoveR = false
 					if (!checkWall(reddot.x, reddot.y, reddot.x-1, reddot.y-1)){
 						gmoveL = gmoveU = true
 					}
-					
 				}else if (upM) {
 					if (!checkWall(reddot.x, reddot.y, reddot.x, reddot.y-1)){
 						gmoveU = true
@@ -601,6 +601,7 @@ var gmoveR = false
 				if (isDefined(maze)){
 					maze.addPath(reddot)
 				}
+
 				//check if fovEnh
 				checkFovEnh()
 				if (reddot.is(exit)){
@@ -614,76 +615,45 @@ var gmoveR = false
 
 /*
 }
-	functions with canvas {
-*/
 
-	function getCtx(id){
-		let canvas = document.getElementById(id)
-		if (isDefined(canvas)){
-			if (canvas.getContext){
-				let ctx  = canvas.getContext(`2d`, { alpha: false })//alfa: false for optimization
-				ctx.restore()
-				return ctx
-			}else {
-				console.log(`canvas.getContext is not defined`)
-				return undefined
-			}	
-		}else {
-			console.log(`canvas is not defined`)
-			return undefined
-		}
-	}
-	//clear canvas for new draw
-	function clearCanvas(canvasID){
-		let ctx = getCtx(canvasID)
-		if (isDefined(ctx)){
-			//some odd way to clear canvas
-			ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height) 
-			ctx.save()
-		}else {
-			console.log(`ctx is not defined`)
-		}
-	}
-
-/*
-}
-	draw game elements {
+	draw {
 */
 
 	//main draw
-	function draw(canvasID){
-		//clear canvas
-		clearCanvas(canvasID)
+	function draw(){
+		let canvasID = backCanvas
+
+		globalContext.clearCtx(canvasID)
 		handleKeys()
 		//draw exit
 		if (isDefined(exit)){
-			exit.render(getCtx(canvasID))
+			exit.render(globalContext.getCtx(canvasID))
 		}
 		for (let i = 0; i < fovEnhArr.length; i++){
-			fovEnhArr[i].render(getCtx(canvasID))
+			fovEnhArr[i].render(globalContext.getCtx(canvasID))
 		}
 		//draw gradient
 		if (isDefined(reddotView) && drawFOVi){
-			reddotView.renderFov(getCtx(canvasID))
+			reddotView.renderFov(globalContext.getCtx(canvasID))
 		}
-	}
-	function draw2(canvasID){
-		clearCanvas(canvasID)
+
+		canvasID = topCanvas
+		globalContext.clearCtx(canvasID)
 		//draw path
 		if (isDefined(maze) && drawPath){
-			maze.renderPath(getCtx(canvasID))
+			maze.renderPath(globalContext.getCtx(canvasID))
 		}
 		//redraw reddot
 		if (isDefined(reddotView)){
-			reddotView.render(getCtx(canvasID))
+			reddotView.render(globalContext.getCtx(canvasID))
 		}
 	}
 	function draw3(canvasID){
-		clearCanvas(canvasID)
+		globalContext.clearCtx(canvasID)
 
 		//redraw maze
 		if (isDefined(maze)){
-			maze.render(getCtx(canvasID))
+			maze.render(globalContext.getCtx(canvasID))
 		}
 	}
 
@@ -692,7 +662,36 @@ var gmoveR = false
 	classes {
 */
 
-	//classes
+	class contextHandler {
+		constructor(...rest){	
+			for (let i = 0; i < rest.length; i++){
+				this[rest[i]] = this.initCtx(rest[i])
+				this[rest[i]].restore()
+			}
+		}
+		initCtx(id){
+			let canvas = document.getElementById(id)
+			if (isDefined(canvas)){
+				 return (canvas.getContext) ? canvas.getContext(`2d`, { alpha: false }) : undefined
+			}else {
+				return undefined
+			}		
+		}
+		getCtx(id){
+			if (isDefined(this[id])){
+				this[id].restore()
+				this[id].beginPath()
+			}
+			return this[id]
+		}
+		clearCtx(id){
+			let ctx = this[id]
+			if (isDefined(ctx)){
+				ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height) 
+				ctx.closePath()
+			}			
+		}
+	}
 	class Point {
 		constructor(x = 0 , y = 0, d = 0, type = undefined){
 			this.x = x
@@ -722,31 +721,36 @@ var gmoveR = false
 			}
 		}
 		renderReddotView(ctx){
-			ctx.beginPath()
+			//ctx.beginPath()
 			ctx.fillStyle = `red` 
 			ctx.arc(this.x + this.d/2 , this.y + this.d/2, (this.d-5)/2 , 0, 2 * Math.PI)
 			ctx.closePath()
 			ctx.fill()
 		}
 		renderExit(ctx){
+			//ctx.beginPath()
 			ctx.strokeStyle = `red`
 			ctx.globalCompositeOperation = `source-over`
 			ctx.strokeRect(this.x * this.d + this.d/4, this.y * this.d + this.d/4 , this.d/2, this.d/2)
+			ctx.closePath()
 		}
 		renderFovEnh(ctx){
+			//ctx.beginPath()
 			ctx.strokeStyle = `blue`
 			ctx.globalCompositeOperation = `source-over`
 			ctx.strokeRect(this.x * this.d + this.d/4, this.y * this.d + this.d/4 , this.d/2, this.d/2)
+			ctx.closePath()
 		}
 		renderFov(ctx){
 			let gradient = undefined
+			//ctx.beginPath()
 			ctx.globalCompositeOperation = `darken`
 			gradient = ctx.createRadialGradient(this.x + this.d/2, this.y + this.d/2, this.d * fovRM, this.x + this.d/2, this.y + this.d/2, this.d * (fovRM * 2))
 			gradient.addColorStop(0, `white`) //from
 			gradient.addColorStop(1, `black`) //to
 			ctx.fillStyle = gradient
 			ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height)
-			ctx.save()
+			ctx.closePath()
 		}
 	}
 	//square to fill maze
@@ -907,8 +911,8 @@ var gmoveR = false
 		render(ctx){
 			let lstartX = 0
 			let lstartY = 0
+			//ctx.beginPath()
 			ctx.strokeStyle = `black`
-			ctx.beginPath()
 			for (let i = 0; i < this.height; i++){
 				for (let j = 0; j < this.width; j++){
 					if (this.field[i][j].up){
@@ -934,7 +938,6 @@ var gmoveR = false
 			}
 			ctx.closePath()
 			ctx.stroke()
-			ctx.save()
 		}
 		addPath(point){
 			if (!isDefined(this.path)) { this.path = new Array() }
@@ -943,16 +946,15 @@ var gmoveR = false
 		renderPath(ctx){
 			if (isDefined(this.path)){
 				if (this.path.length > 1){
-					ctx.beginPath()
+					//ctx.beginPath()
 					ctx.strokeStyle = `purple`
 					ctx.globalCompositeOperation = `source-over`
-					ctx.moveTo(this.path[0].x * this.d +  this.d/2, this.path[0].y * this.d +  this.d/2)
 					for( let i = 1; i < this.path.length; i++){ 
+						ctx.moveTo(this.path[i-1].x * this.d +  this.d/2, this.path[i-1].y * this.d +  this.d/2)
 						ctx.lineTo( this.path[i].x* this.d +  this.d/2, this.path[i].y* this.d +  this.d/2)	
 					}
-					ctx.stroke()
 					ctx.closePath()
-					ctx.save()
+					ctx.stroke()
 				}
 			}
 		}
