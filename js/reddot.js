@@ -73,17 +73,6 @@ var gmoveR = false
 
 */
 
-/*
-	test functions{
-	
-	
-*/
-
-
-/*
-}
-*/
-
 
 /*
 
@@ -137,20 +126,6 @@ var gmoveR = false
 			document.addEventListener(`keyup`, handleKeysUp)
 		}
 	}
-	// function createAnimFrame(){
-	// 	if (isDefined(window)){
-	// 		// window.requestAnimFrame = (
-	// 		// 		function(){
-	// 		// 			return  window.requestAnimationFrame       ||
-	// 		// 					window.webkitRequestAnimationFrame ||
-	// 		// 					window.mozRequestAnimationFrame    ||
-	// 		// 					function( callback ){
-	// 		// 						window.setTimeout(callback, 1000 / 60);
-	// 		// 					};
-	// 		// })();
-	// 		//drawLoop()
-	// 	}
-	// }
 	function forDebug(){
 		if (debug){
 			if (isDefined(document)) {
@@ -286,65 +261,6 @@ var gmoveR = false
 }
 	special cheecks{
 */
-	//check if can move from x,y to x1y1
-	function checkWall(xf, yf, xt, yt){
-		//TODO: check  sides of fiels
-		if (isDefined(maze)){
-			if(  xt < 0 || yt < 0 || xt > maze.width - 1 || yt > maze.height - 1){
-				return true
-			}
-			let diffX = xf - xt
-			let diffY = yf - yt
-			if (Math.abs(diffX) != 0  && Math.abs(diffY) != 0){
-				//to corner
-				if (diffX > 0 && diffY > 0){
-					//up-left
-					return maze.field[yt][xt].down && maze.field[yt][xt].right 
-						|| maze.field[yf][xf].up && maze.field[yf][xf].left 
-						|| maze.field[yf][xf].up && maze.field[yt][xt].down 
-						|| maze.field[yf][xf].left && maze.field[yt][xt].right
-				}else if (diffX < 0 && diffY < 0) {
-					//down-right
-					return maze.field[yt][xt].up && maze.field[yt][xt].left 
-						|| maze.field[yf][xf].down && maze.field[yf][xf].right 
-						|| maze.field[yf][xf].down && maze.field[yt][xt].up 
-						|| maze.field[yf][xf].right && maze.field[yt][xt].left
-				}else if (diffX > 0 && diffY < 0) {
-					//down-left
-					return maze.field[yt][xt].up && maze.field[yt][xt].right 
-						|| maze.field[yf][xf].down && maze.field[yf][xf].left 
-						|| maze.field[yf][xf].down && maze.field[yt][xt].up 
-						|| maze.field[yf][xf].left && maze.field[yt][xt].right
-				}else if (diffX < 0 && diffY > 0) {
-					//up-right
-					return maze.field[yt][xt].down && maze.field[yt][xt].left 
-						|| maze.field[yf][xf].up && maze.field[yf][xf].right 
-						|| maze.field[yf][xf].up && maze.field[yt][xt].down 
-						|| maze.field[yf][xf].right && maze.field[yt][xt].left
-				}
-
-			}else if (Math.abs(diffX) != 0 && Math.abs(diffY) == 0 ) {
-				//horizontal
-				if (diffX > 0){
-					return maze.field[yf][xf].left
-				}else {
-					return maze.field[yf][xf].right
-				}
-			}else if (Math.abs(diffX) == 0 && Math.abs(diffY) != 0) {
-				//vertical
-				if (diffY > 0){
-					return maze.field[yf][xf].up
-				}else {
-					return maze.field[yf][xf].down
-				}
-			}else {
-				return false
-			}
-		}else {
-			console.log(`maze is not defined`)
-			return false
-		}
-	}
 	//check if reddot in fovEnh
 	function checkFovEnh(){
 		if (isDefined(reddot) && isDefined(fovEnhArr)){
@@ -367,18 +283,14 @@ var gmoveR = false
 
 	//handle path checkbox
 	function handlePathCb(event){
-		if (isDefined(event)){
-			if (drawPath != event.target.checked){
-				drawPath = event.target.checked
-			}
+		if (isDefined(event)){				
+			drawPath = event.target.checked
 		}
 	}
 	//handle fov checkbox
 	function handleFovCb(event){
 		if (isDefined(event)){
-			if (drawFOVi != event.target.checked){
-				drawFOVi = event.target.checked
-			}
+			drawFOVi = event.target.checked
 		}
 	}
 	//handle keys
@@ -414,7 +326,7 @@ var gmoveR = false
 		}
 	}
 	function handleKeys(){
-		if (isDefined(reddot)){
+		if (isDefined(reddot) && isDefined(maze)){
 			let move = false
 			if (gmoveU || gmoveR || gmoveD || gmoveL){
 				//continue to move
@@ -507,37 +419,37 @@ var gmoveR = false
 			}else{
 				//start new move
 				if (upM && rightM){
-					if (!checkWall(reddot.x, reddot.y, reddot.x+1, reddot.y-1)){
+					if (!maze.checkWall(reddot.x, reddot.y, reddot.x+1, reddot.y-1)){
 						gmoveU = gmoveR = true
 					}
 				}else if (rightM && downM) {
-					if (!checkWall(reddot.x, reddot.y, reddot.x+1, reddot.y+1)){
+					if (!maze.checkWall(reddot.x, reddot.y, reddot.x+1, reddot.y+1)){
 						gmoveR = gmoveD = true
 					}
 					
 				}else if (downM && leftM) {
-					if (!checkWall(reddot.x, reddot.y, reddot.x-1, reddot.y+1)){
+					if (!maze.checkWall(reddot.x, reddot.y, reddot.x-1, reddot.y+1)){
 						gmoveD = gmoveL = true
 					}
 					
 				}else if (leftM && upM) {
-					if (!checkWall(reddot.x, reddot.y, reddot.x-1, reddot.y-1)){
+					if (!maze.checkWall(reddot.x, reddot.y, reddot.x-1, reddot.y-1)){
 						gmoveL = gmoveU = true
 					}
 				}else if (upM) {
-					if (!checkWall(reddot.x, reddot.y, reddot.x, reddot.y-1)){
+					if (!maze.checkWall(reddot.x, reddot.y, reddot.x, reddot.y-1)){
 						gmoveU = true
 					}
 				}else if (rightM) {
-					if (!checkWall(reddot.x, reddot.y, reddot.x+1, reddot.y)){
+					if (!maze.checkWall(reddot.x, reddot.y, reddot.x+1, reddot.y)){
 						gmoveR = true
 					}
 				}else if (downM) {
-					if (!checkWall(reddot.x, reddot.y, reddot.x, reddot.y+1)){
+					if (!maze.checkWall(reddot.x, reddot.y, reddot.x, reddot.y+1)){
 						gmoveD = true
 					}
 				}else if (leftM) {
-					if (!checkWall(reddot.x, reddot.y, reddot.x-1, reddot.y)){
+					if (!maze.checkWall(reddot.x, reddot.y, reddot.x-1, reddot.y)){
 						gmoveL = true
 					}
 				}
@@ -632,7 +544,7 @@ var gmoveR = false
 		for (let i = 0; i < fovEnhArr.length; i++){
 			fovEnhArr[i].render(globalContext.getCtx(canvasID))
 		}
-		//draw gradient
+		//draw fov
 		if (isDefined(reddotView) && drawFOVi){
 			reddotView.renderFov(globalContext.getCtx(canvasID))
 		}
@@ -657,16 +569,20 @@ var gmoveR = false
 		}
 	}
 
-/*
-}
-	classes {
-*/
 
+//}
+//	classes {
+
+	//context handler for using contexts of canvas
+	//works with any amount of canvases
+	//just put id of canvases to  funciton
 	class contextHandler {
 		constructor(...rest){	
 			for (let i = 0; i < rest.length; i++){
 				this[rest[i]] = this.initCtx(rest[i])
-				this[rest[i]].restore()
+				if (!isDefined(this[rest[i]])){
+					this[rest[i]].restore()
+				}
 			}
 		}
 		initCtx(id){
@@ -721,21 +637,18 @@ var gmoveR = false
 			}
 		}
 		renderReddotView(ctx){
-			//ctx.beginPath()
 			ctx.fillStyle = `red` 
 			ctx.arc(this.x + this.d/2 , this.y + this.d/2, (this.d-5)/2 , 0, 2 * Math.PI)
 			ctx.closePath()
 			ctx.fill()
 		}
 		renderExit(ctx){
-			//ctx.beginPath()
 			ctx.strokeStyle = `red`
 			ctx.globalCompositeOperation = `source-over`
 			ctx.strokeRect(this.x * this.d + this.d/4, this.y * this.d + this.d/4 , this.d/2, this.d/2)
 			ctx.closePath()
 		}
 		renderFovEnh(ctx){
-			//ctx.beginPath()
 			ctx.strokeStyle = `blue`
 			ctx.globalCompositeOperation = `source-over`
 			ctx.strokeRect(this.x * this.d + this.d/4, this.y * this.d + this.d/4 , this.d/2, this.d/2)
@@ -743,7 +656,6 @@ var gmoveR = false
 		}
 		renderFov(ctx){
 			let gradient = undefined
-			//ctx.beginPath()
 			ctx.globalCompositeOperation = `darken`
 			gradient = ctx.createRadialGradient(this.x + this.d/2, this.y + this.d/2, this.d * fovRM, this.x + this.d/2, this.y + this.d/2, this.d * (fovRM * 2))
 			gradient.addColorStop(0, `white`) //from
@@ -911,7 +823,6 @@ var gmoveR = false
 		render(ctx){
 			let lstartX = 0
 			let lstartY = 0
-			//ctx.beginPath()
 			ctx.strokeStyle = `black`
 			for (let i = 0; i < this.height; i++){
 				for (let j = 0; j < this.width; j++){
@@ -946,7 +857,6 @@ var gmoveR = false
 		renderPath(ctx){
 			if (isDefined(this.path)){
 				if (this.path.length > 1){
-					//ctx.beginPath()
 					ctx.strokeStyle = `purple`
 					ctx.globalCompositeOperation = `source-over`
 					for( let i = 1; i < this.path.length; i++){ 
@@ -958,9 +868,58 @@ var gmoveR = false
 				}
 			}
 		}
+		checkWall(xf, yf, xt, yt){
+			if(  xt < 0 || yt < 0 || xt > this.width - 1 || yt > this.height - 1){
+				return true
+			}
+			let diffX = xf - xt
+			let diffY = yf - yt
+			if (Math.abs(diffX) != 0  && Math.abs(diffY) != 0){
+				//to corner
+				if (diffX > 0 && diffY > 0){
+					//up-left
+					return this.field[yt][xt].down && this.field[yt][xt].right 
+						|| this.field[yf][xf].up && this.field[yf][xf].left 
+						|| this.field[yf][xf].up && this.field[yt][xt].down 
+						|| this.field[yf][xf].left && this.field[yt][xt].right
+				}else if (diffX < 0 && diffY < 0) {
+					//down-right
+					return this.field[yt][xt].up && this.field[yt][xt].left 
+						|| this.field[yf][xf].down && this.field[yf][xf].right 
+						|| this.field[yf][xf].down && this.field[yt][xt].up 
+						|| this.field[yf][xf].right && this.field[yt][xt].left
+				}else if (diffX > 0 && diffY < 0) {
+					//down-left
+					return this.field[yt][xt].up && this.field[yt][xt].right 
+						|| this.field[yf][xf].down && this.field[yf][xf].left 
+						|| this.field[yf][xf].down && this.field[yt][xt].up 
+						|| this.field[yf][xf].left && this.field[yt][xt].right
+				}else if (diffX < 0 && diffY > 0) {
+					//up-right
+					return this.field[yt][xt].down && this.field[yt][xt].left 
+						|| this.field[yf][xf].up && this.field[yf][xf].right 
+						|| this.field[yf][xf].up && this.field[yt][xt].down 
+						|| this.field[yf][xf].right && this.field[yt][xt].left
+				}
+
+			}else if (Math.abs(diffX) != 0 && Math.abs(diffY) == 0 ) {
+				//horizontal
+				if (diffX > 0){
+					return this.field[yf][xf].left
+				}else {
+					return this.field[yf][xf].right
+				}
+			}else if (Math.abs(diffX) == 0 && Math.abs(diffY) != 0) {
+				//vertical
+				if (diffY > 0){
+					return this.field[yf][xf].up
+				}else {
+					return this.field[yf][xf].down
+				}
+			}else {
+				return false
+			}
+		}
 	}
 
-/*
-}
-
-*/
+//}
