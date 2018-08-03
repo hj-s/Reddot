@@ -633,7 +633,6 @@ var gmoveR = false
 					default:
 						break
 				}
-				ctx.save()
 			}
 		}
 		renderReddotView(ctx){
