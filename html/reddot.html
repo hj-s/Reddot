@@ -22,14 +22,16 @@
 			float: right;
 			visibility: hidden;
 		}
-		#field { z-index: 1 }
-		#field2 { z-index: 2 }
+		#fov { z-index: 1 }
+		#maze { z-index: 2 }
+		#reddot { z-index: 3 }
 	</style>
 
 </head>
 <body onload="init();">
-	<canvas id="field2">Your browser does not support canvas</canvas>
-	<canvas id="field">Your browser does not support canvas</canvas>
+	<canvas id="maze">Your browser does not support canvas</canvas>
+	<canvas id="fov">Your browser does not support canvas</canvas>
+	<canvas id="reddot">Your browser does not support canvas</canvas>
 	<div id="controls" class="controls">
 		<input type="checkbox" name="path" id="path" checked="true"><label for="path" id="pathLabel">show path</label>
 		<br>

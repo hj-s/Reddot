@@ -10,8 +10,9 @@ const sqfd = 20
 const cwidth = sqfX*sqfd
 const cheight = sqfY*sqfd
 
-const topCanvas = `field`
-const backCanvas = 'field2'
+const topCanvas = `reddot`
+const middleCanvas = `maze`
+const backCanvas = 'fov'
 
 //start pos for reddot
 var startX = 0
@@ -92,6 +93,8 @@ var gmoveR = false
 	//int
 	function init(){
 		initCanvas(backCanvas)
+
+		initCanvas(middleCanvas)
 		
 		initCanvas(topCanvas)
 			
@@ -189,13 +192,15 @@ var gmoveR = false
 			fovEnhArr[i] = generatePoint(`fovEnh`)
 		}
 
-		drawStatic(backCanvas)
+		drawStatic(middleCanvas)
 	}
 
 	// animation loop
 	function drawLoop(){
-		draw(topCanvas);
-		requestAnimFrame(drawLoop);
+		
+		draw(backCanvas)
+		draw2(topCanvas)
+		requestAnimFrame(drawLoop)
 	}
 
 /*
@@ -712,12 +717,7 @@ var gmoveR = false
 */
 
 	//main draw
-	function draw(canvasID, test = false){
-		//let canvasID = topCanvas
-		let time
-		if (test){
-			time = isDefined(performance) ? performance.now() : 0
-		}
+	function draw(canvasID){
 		//clear canvas
 		clearCanvas(canvasID)
 		handleKeys()
@@ -732,6 +732,9 @@ var gmoveR = false
 		if (isDefined(reddot) && drawFOV){
 			drawFov(canvasID)
 		}
+	}
+	function draw2(canvasID){
+		clearCanvas(canvasID)
 		//draw path
 		if (isDefined(path) && drawPath){
 			drawPathLine(canvasID)
@@ -739,10 +742,6 @@ var gmoveR = false
 		//redraw reddot
 		if (isDefined(reddotView)){
 			drawreddotView(canvasID)
-		}
-		if (test){
-			time = isDefined(performance) ? performance.now() - time : 0
-			console.log(` time: ${round(time)}`)
 		}
 	}
 	function drawStatic(canvasID){
