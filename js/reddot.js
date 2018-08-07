@@ -36,7 +36,6 @@ var maze = undefined
 var reddot = undefined
 var exit = undefined
 var fovEnhArr = undefined
-var reddotView = undefined
 
 var globalContext = undefined
 
@@ -50,10 +49,6 @@ var debug = true
 //movement
 var speed = 1
 
-var leftM = false
-var rightM = false
-var upM = false
-var downM = false
 var gmove = false
 
 var moveU = false
@@ -110,9 +105,6 @@ var gmoveR = false
 		reddot = maze.createReddot()
 		startX = reddot.x
 		startY = reddot.y
-		reddotView = new Point(startX * sqfd, startY * sqfd, sqfd, `reddot`)
-		//test
-		//global.createEvli()
 		//clear path
 		maze.addPath( new Point( startX, startY ) )
 				//create exit
@@ -188,11 +180,11 @@ var gmoveR = false
 			if (gmoveU || gmoveR || gmoveD || gmoveL){
 				//continue to move
 				if (gmoveU && gmoveR){
-					reddotView.x += speed
-					reddotView.y -= speed
-					if (fuzzCheck(reddotView.y/sqfd, reddot.y -1) && fuzzCheck(reddotView.x/sqfd, reddot.x + 1)){
-						reddotView.x = (reddot.x + 1)*sqfd
-						reddotView.y = (reddot.y - 1)*sqfd
+					reddot.view.x += speed
+					reddot.view.y -= speed
+					if (fuzzCheck(reddot.view.y/reddot.d, reddot.y -1) && fuzzCheck(reddot.view.x/reddot.d, reddot.x + 1)){
+						reddot.view.x = (reddot.x + 1)*reddot.d
+						reddot.view.y = (reddot.y - 1)*reddot.d
 						move = true
 						moveU = true
 						moveR = true
@@ -201,11 +193,11 @@ var gmoveR = false
 					}
 
 				}else if (gmoveR && gmoveD) {
-					reddotView.x += speed
-					reddotView.y += speed
-					if (fuzzCheck(reddotView.x/sqfd, reddot.x + 1) && fuzzCheck( reddotView.y/sqfd, reddot.y + 1)){
-						reddotView.x = (reddot.x + 1)*sqfd
-						reddotView.y = (reddot.y + 1)*sqfd
+					reddot.view.x += speed
+					reddot.view.y += speed
+					if (fuzzCheck(reddot.view.x/reddot.d, reddot.x + 1) && fuzzCheck( reddot.view.y/reddot.d, reddot.y + 1)){
+						reddot.view.x = (reddot.x + 1)*reddot.d
+						reddot.view.y = (reddot.y + 1)*reddot.d
 						move = true
 						moveR = true
 						moveD = true
@@ -215,11 +207,11 @@ var gmoveR = false
 					}
 					
 				}else if (gmoveD && gmoveL) {
-					reddotView.x -= speed
-					reddotView.y += speed
-					if (fuzzCheck( reddotView.y/sqfd, reddot.y + 1) && fuzzCheck(reddotView.x/sqfd, reddot.x -1)) {
-						reddotView.x = (reddot.x -1)*sqfd
-						reddotView.y = (reddot.y + 1)*sqfd
+					reddot.view.x -= speed
+					reddot.view.y += speed
+					if (fuzzCheck( reddot.view.y/reddot.d, reddot.y + 1) && fuzzCheck(reddot.view.x/reddot.d, reddot.x -1)) {
+						reddot.view.x = (reddot.x -1)*reddot.d
+						reddot.view.y = (reddot.y + 1)*reddot.d
 						move = true
 						moveD = true
 						moveL = true
@@ -228,11 +220,11 @@ var gmoveR = false
 					}
 					
 				}else if (gmoveL && gmoveU) {
-					reddotView.x -= speed
-					reddotView.y -= speed
-					if (fuzzCheck(reddotView.x/sqfd, reddot.x -1) && fuzzCheck(reddotView.y/sqfd, reddot.y -1)){
-						reddotView.x = (reddot.x -1)*sqfd
-						reddotView.y = (reddot.y - 1)*sqfd
+					reddot.view.x -= speed
+					reddot.view.y -= speed
+					if (fuzzCheck(reddot.view.x/reddot.d, reddot.x -1) && fuzzCheck(reddot.view.y/reddot.d, reddot.y -1)){
+						reddot.view.x = (reddot.x -1)*reddot.d
+						reddot.view.y = (reddot.y - 1)*reddot.d
 						move = true
 						moveL = true
 						moveU = true
@@ -240,34 +232,34 @@ var gmoveR = false
 						gmoveU = true
 					}
 				}else if (gmoveU) {
-					reddotView.y -= speed
-					if (fuzzCheck(reddotView.y/sqfd, reddot.y -1)){
-						reddotView.y = (reddot.y - 1)*sqfd
+					reddot.view.y -= speed
+					if (fuzzCheck(reddot.view.y/reddot.d, reddot.y -1)){
+						reddot.view.y = (reddot.y - 1)*reddot.d
 						move = true
 						moveU = true
 						gmoveU = false
 					}
 					
 				}else if (gmoveR) {
-					reddotView.x += speed
-					if (fuzzCheck(reddotView.x/sqfd, reddot.x + 1)){
-						reddotView.x = (reddot.x + 1)*sqfd
+					reddot.view.x += speed
+					if (fuzzCheck(reddot.view.x/reddot.d, reddot.x + 1)){
+						reddot.view.x = (reddot.x + 1)*reddot.d
 						move = true
 						moveR = true
 						gmoveR = false
 					}
 				}else if (gmoveD) {
-					reddotView.y += speed
-					if (fuzzCheck( reddotView.y/sqfd, reddot.y + 1)) {
-						reddotView.y = (reddot.y + 1)*sqfd
+					reddot.view.y += speed
+					if (fuzzCheck( reddot.view.y/reddot.d, reddot.y + 1)) {
+						reddot.view.y = (reddot.y + 1)*reddot.d
 						move = true
 						moveD = true
 						gmoveD = false
 					}
 				}else if (gmoveL) {
-					reddotView.x -= speed
-					if (fuzzCheck(reddotView.x/sqfd, reddot.x -1)){
-						reddotView.x = (reddot.x -1)*sqfd
+					reddot.view.x -= speed
+					if (fuzzCheck(reddot.view.x/reddot.d, reddot.x -1)){
+						reddot.view.x = (reddot.x -1)*reddot.d
 						move = true
 						moveL = true
 						gmoveL = false
@@ -401,8 +393,8 @@ var gmoveR = false
 			fovEnhArr[i].render(globalContext.getCtx(canvasID))
 		}
 		//draw fov
-		if (isDefined(reddotView) && drawFOVi){
-			reddotView.renderFov(globalContext.getCtx(canvasID))
+		if (isDefined(reddot) && drawFOVi){
+			reddot.renderFov(globalContext.getCtx(canvasID))
 		}
 
 		canvasID = topCanvas
@@ -412,8 +404,8 @@ var gmoveR = false
 			maze.renderPath(globalContext.getCtx(canvasID))
 		}
 		//redraw reddot
-		if (isDefined(reddotView)){
-			reddotView.render(globalContext.getCtx(canvasID))
+		if (isDefined(reddot)){
+			reddot.render(globalContext.getCtx(canvasID))
 		}
 		// if (isDefined(global.evil)){
 		// 	//global.evil.move()
@@ -585,6 +577,9 @@ var gmoveR = false
 			this.y = y
 			this.d = d
 			this.type = type
+			this.view = {}
+			this.view.x = x * d
+			this.view.y = y * d
 		}
 		is(point){
 			return (this.x == point.x && this.y == point.y)
@@ -596,10 +591,10 @@ var gmoveR = false
 						this.renderReddotView(ctx)
 						break
 					case `exit`:
-						this.renderExit(ctx)
+						this.renderExitView(ctx)
 						break
 					case `fovEnh`:
-						this.renderFovEnh(ctx)
+						this.renderFovEnhView(ctx)
 						break
 					default:
 						break
@@ -608,7 +603,7 @@ var gmoveR = false
 		}
 		renderReddotView(ctx){
 			ctx.fillStyle = `red` 
-			ctx.arc(this.x + this.d/2 , this.y + this.d/2, (this.d-5)/2 , 0, 2 * Math.PI)
+			ctx.arc(this.view.x + this.d/2 , this.view.y + this.d/2, (this.d-5)/2 , 0, 2 * Math.PI)
 			ctx.closePath()
 			ctx.fill()
 		}
@@ -618,15 +613,21 @@ var gmoveR = false
 			ctx.strokeRect(this.x * this.d + this.d/4, this.y * this.d + this.d/4 , this.d/2, this.d/2)
 			ctx.closePath()
 		}
-		renderFovEnh(ctx){
+		renderExitView(ctx){
+			ctx.strokeStyle = `red`
+			ctx.globalCompositeOperation = `source-over`
+			ctx.strokeRect(this.view.x + this.d/4, this.view.y + this.d/4 , this.d/2, this.d/2)
+			ctx.closePath()
+		}
+		renderFovEnhView(ctx){
 			ctx.strokeStyle = `blue`
 			ctx.globalCompositeOperation = `source-over`
-			ctx.strokeRect(this.x * this.d + this.d/4, this.y * this.d + this.d/4 , this.d/2, this.d/2)
+			ctx.strokeRect(this.view.x + this.d/4, this.view.y + this.d/4 , this.d/2, this.d/2)
 			ctx.closePath()
 		}
 		renderFov(ctx){
 			ctx.globalCompositeOperation = `darken`
-			let gradient = ctx.createRadialGradient(this.x + this.d/2, this.y + this.d/2, this.d * fovRM, this.x + this.d/2, this.y + this.d/2, this.d * (fovRM * 2))
+			let gradient = ctx.createRadialGradient(this.view.x + this.d/2, this.view.y + this.d/2, this.d * fovRM, this.view.x + this.d/2, this.view.y + this.d/2, this.d * (fovRM * 2))
 			gradient.addColorStop(0, `white`) //from
 			gradient.addColorStop(1, `black`) //to
 			ctx.fillStyle = gradient
