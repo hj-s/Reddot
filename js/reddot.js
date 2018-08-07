@@ -10,10 +10,13 @@ const sqfd = 20
 
 const cwidth = sqfX*sqfd
 const cheight = sqfY*sqfd
+// const cwidth = window.innerWidth
+// const cheight = window.innerHeight
+
 
 const topCanvas = `reddot`
 const middleCanvas = `maze`
-const backCanvas = 'fov'
+const backCanvas = `fov`
 
 //start pos for reddot
 var startX = 0
@@ -81,70 +84,19 @@ var gmoveR = false
 
 	//int
 	function init(){
-		initCanvas(backCanvas)
-
-		initCanvas(middleCanvas)
-		
-		initCanvas(topCanvas)
 			
-		initListeners()
+		Global.initglobal()
 
-		forDebug()
+		Global.forDebug()
 		
-		//createAnimFrame()
-		
-		globalContext = new contextHandler(backCanvas, middleCanvas, topCanvas)
+		globalContext = new ContextHandler(cwidth, cheight, backCanvas, middleCanvas, topCanvas)
 
 		//startMaze
 		startMaze()
 
 		requestAnimationFrame(drawLoop)
 	}
-	function initCanvas(canvasID){
-		let canvas = document.getElementById(canvasID)
-		if (canvas.getContext) {
-			//set canvase size
-			canvas.height = cheight
-			canvas.width = cwidth
-			let ctx  = canvas.getContext(`2d`, { alpha: false })
-			ctx.beginPath()
-			ctx.globalAlpha = 1
-			ctx.lineCap = 'round'
-			ctx.lineJoin = 'round'
-			ctx.lineWidth = 2
-			ctx.globalCompositeOperation = `source-over`
-			ctx.save()
 
-		} else {
-			alert(`Your browser does not support canvas`)
-		}
-	}
-	function initListeners(){
-		//add keypress listener
-		if (isDefined(document)) {
-			document.addEventListener(`keydown`, handleKeysDown)
-			document.addEventListener(`keyup`, handleKeysUp)
-		}
-	}
-	function forDebug(){
-		if (debug){
-			if (isDefined(document)) {
-				let controlBox = document.getElementById(`controls`)
-				if (isDefined(controlBox)) { controlBox.style.visibility = `visible` }
-				let pathCb = document.getElementById(`path`)
-				if (isDefined(pathCb)){
-					//add listener
-					pathCb.addEventListener(`change`, handlePathCb)
-				}
-
-				let fovCb = document.getElementById(`fovcb`)
-				if (isDefined(fovCb)){
-					fovCb.addEventListener(`change`, handleFovCb)
-					fovCb.style.visibility = `visible`
-				}
-			}
-		}
-	}
 	//create maze & reddot
 	function startMaze(){
 		if (isDefined(currentTimer)){
@@ -155,19 +107,21 @@ var gmoveR = false
 		//create maze using method
 		maze.createMaze(`eller`)
 		//create point
-		reddot = createReddot()
+		reddot = maze.createReddot()
 		startX = reddot.x
 		startY = reddot.y
 		reddotView = new Point(startX * sqfd, startY * sqfd, sqfd, `reddot`)
+		//test
+		//global.createEvli()
 		//clear path
 		maze.addPath( new Point( startX, startY ) )
 				//create exit
-		exit = createExit()
+		exit = maze.createExit()
 		//create fov enhancement points
 		cTimers = 0
 		fovEnhArr = new Array(5)
 		for (let i = 0; i < fovEnhArr.length; i++){
-			fovEnhArr[i] = generatePoint(`fovEnh`)
+			fovEnhArr[i] = maze.generatePoint(`fovEnh`)
 		}
 
 		draw3(middleCanvas)
@@ -206,59 +160,6 @@ var gmoveR = false
 
 /*
 }
-	generate game objecs{
-*/
-	//generate random point on the wall
-	function generatePointAtWall(type = undefined){
-		let walls = [`up`,`right`,`down`,`left`]
-		//choose wall
-		let randomItem = walls[Math.floor(Math.random()*walls.length)]
-		//shose position on the wall
-		if (randomItem == `up`){
-			return new Point(Math.floor(Math.random()*sqfX), 0, sqfd,  type)
-		}else if (randomItem == `right`) {
-			return new Point(sqfX - 1, Math.floor(Math.random()*sqfY), sqfd, type)
-		}else if (randomItem == `down`) {
-			return new Point(Math.floor(Math.random()*sqfX), sqfY - 1, sqfd, type)
-		}else if (randomItem ==`left` ) {
-			return new Point(0 ,Math.floor(Math.random()*sqfY), sqfd, type)
-		}else {
-			console.log(`unknown wall`)
-			return generatePoint(type)
-		}
-	}
-	//generate random point
-	function generatePoint(type = undefined){
-		let point = new Point( Math.floor(Math.random()*sqfX), Math.floor(Math.random()*sqfY), sqfd, type)
-		if (isDefined(reddot)){
-			if (point.is(reddot)) { 
-				return generatePoint(type)
-			}
-		}
-		if (isDefined(exit)){
-			if  (point.is(exit)){
-				return generatePoint(type)
-			}
-		}
-		return point
-	}
-	//function createReddot
-	function  createReddot(){
-		return generatePointAtWall(`reddot`)
-	}
-	//create exit
-	function createExit() {
-		if (isDefined(maze)){
-			let cexit = generatePointAtWall(`exit`)
-			if (isDefined(reddot)){
-				return (cexit.is(reddot) ? createExit() : cexit )
-			}else {
-				return cexit
-			} 
-		}
-	}
-/*
-}
 	special cheecks{
 */
 	//check if reddot in fovEnh
@@ -281,50 +182,6 @@ var gmoveR = false
 	handlers {
 */
 
-	//handle path checkbox
-	function handlePathCb(event){
-		if (isDefined(event)){				
-			drawPath = event.target.checked
-		}
-	}
-	//handle fov checkbox
-	function handleFovCb(event){
-		if (isDefined(event)){
-			drawFOVi = event.target.checked
-		}
-	}
-	//handle keys
-	function handleKeysDown(event){
-		//check what keys are down
-		if (event.key == `W` || event.key == `w` || event.keyCode == 119 || event.keyCode == 87 || event.keyCode == 38) { //w
-			upM = true
-		}
-		if (event.key == `S` || event.key == `s` || event.keyCode == 115 || event.keyCode == 83 || event.keyCode == 40) { //s
-			downM = true
-		}
-		if (event.key == `A` || event.key == `a` || event.keyCode == 97 || event.keyCode == 65 || event.keyCode == 37) { //a
-			leftM = true
-		}
-		if (event.key == `D` || event.key == `d` || event.keyCode == 100 || event.keyCode == 68 || event.keyCode == 39) { //d
-			rightM = true
-		}
-	}
-	//handle keys
-	function handleKeysUp(event){
-		//checm what keys are UP
-		if (event.key == `W` || event.key == `w` || event.keyCode == 119 || event.keyCode == 87 || event.keyCode == 38) { //w
-			upM =  false
-		}
-		if (event.key == `S` || event.key == `s` || event.keyCode == 115 || event.keyCode == 83 || event.keyCode == 40) { //s
-			downM = false
-		}
-		if (event.key == `A` || event.key == `a` || event.keyCode == 97 || event.keyCode == 65 || event.keyCode == 37) { //a
-			leftM = false
-		}
-		if (event.key == `D` || event.key == `d` || event.keyCode == 100 || event.keyCode == 68 || event.keyCode == 39) { //d
-			rightM = false
-		}
-	}
 	function handleKeys(){
 		if (isDefined(reddot) && isDefined(maze)){
 			let move = false
@@ -418,37 +275,37 @@ var gmoveR = false
 				}
 			}else{
 				//start new move
-				if (upM && rightM){
+				if (Global.upM && Global.rightM){
 					if (!maze.checkWall(reddot.x, reddot.y, reddot.x+1, reddot.y-1)){
 						gmoveU = gmoveR = true
 					}
-				}else if (rightM && downM) {
+				}else if (Global.rightM && Global.downM) {
 					if (!maze.checkWall(reddot.x, reddot.y, reddot.x+1, reddot.y+1)){
 						gmoveR = gmoveD = true
 					}
 					
-				}else if (downM && leftM) {
+				}else if (Global.downM && Global.leftM) {
 					if (!maze.checkWall(reddot.x, reddot.y, reddot.x-1, reddot.y+1)){
 						gmoveD = gmoveL = true
 					}
 					
-				}else if (leftM && upM) {
+				}else if (Global.leftM && Global.upM) {
 					if (!maze.checkWall(reddot.x, reddot.y, reddot.x-1, reddot.y-1)){
 						gmoveL = gmoveU = true
 					}
-				}else if (upM) {
+				}else if (Global.upM) {
 					if (!maze.checkWall(reddot.x, reddot.y, reddot.x, reddot.y-1)){
 						gmoveU = true
 					}
-				}else if (rightM) {
+				}else if (Global.rightM) {
 					if (!maze.checkWall(reddot.x, reddot.y, reddot.x+1, reddot.y)){
 						gmoveR = true
 					}
-				}else if (downM) {
+				}else if (Global.downM) {
 					if (!maze.checkWall(reddot.x, reddot.y, reddot.x, reddot.y+1)){
 						gmoveD = true
 					}
-				}else if (leftM) {
+				}else if (Global.leftM) {
 					if (!maze.checkWall(reddot.x, reddot.y, reddot.x-1, reddot.y)){
 						gmoveL = true
 					}
@@ -513,7 +370,6 @@ var gmoveR = false
 				if (isDefined(maze)){
 					maze.addPath(reddot)
 				}
-
 				//check if fovEnh
 				checkFovEnh()
 				if (reddot.is(exit)){
@@ -559,6 +415,10 @@ var gmoveR = false
 		if (isDefined(reddotView)){
 			reddotView.render(globalContext.getCtx(canvasID))
 		}
+		// if (isDefined(global.evil)){
+		// 	//global.evil.move()
+		// 	global.evil.render(globalContext.getCtx(canvasID))
+		// }
 	}
 	function draw3(canvasID){
 		globalContext.clearCtx(canvasID)
@@ -572,23 +432,134 @@ var gmoveR = false
 
 //}
 //	classes {
+	class Global {
+		constructor(){}
+		static initglobal(){
+			
+			Global.initListeners()
+
+			this.upM = false
+			this.downM = false
+			this.rightM = false
+			this.leftM = false
+		}
+		static initListeners(){
+			if (isDefined(document)) {
+				document.addEventListener(`keydown`, this.handleKeysDown)
+				document.addEventListener(`keyup`, this.handleKeysUp)
+			}
+		}
+
+		//handle keys
+		static handleKeysDown(event){
+			//check what keys are down
+			if (event.key == `W` || event.key == `w` || event.keyCode == 119 || event.keyCode == 87 || event.keyCode == 38) { //w
+				Global.upM = true
+			}
+			if (event.key == `S` || event.key == `s` || event.keyCode == 115 || event.keyCode == 83 || event.keyCode == 40) { //s
+				Global.downM = true
+			}
+			if (event.key == `A` || event.key == `a` || event.keyCode == 97 || event.keyCode == 65 || event.keyCode == 37) { //a
+				Global.leftM = true
+			}
+			if (event.key == `D` || event.key == `d` || event.keyCode == 100 || event.keyCode == 68 || event.keyCode == 39) { //d
+				Global.rightM = true
+			}
+		}
+		//handle keys
+		static handleKeysUp(event){
+			//checm what keys are UP
+			if (event.key == `W` || event.key == `w` || event.keyCode == 119 || event.keyCode == 87 || event.keyCode == 38) { //w
+				Global.upM =  false
+			}
+			if (event.key == `S` || event.key == `s` || event.keyCode == 115 || event.keyCode == 83 || event.keyCode == 40) { //s
+				Global.downM = false
+			}
+			if (event.key == `A` || event.key == `a` || event.keyCode == 97 || event.keyCode == 65 || event.keyCode == 37) { //a
+				Global.leftM = false
+			}
+			if (event.key == `D` || event.key == `d` || event.keyCode == 100 || event.keyCode == 68 || event.keyCode == 39) { //d
+				Global.rightM = false
+			}
+		}
+		static forDebug(){
+			if (debug){
+				if (isDefined(document)) {
+					let controlBox = document.getElementById(`controls`)
+					if (isDefined(controlBox)) { controlBox.style.visibility = `visible` }
+					let pathCb = document.getElementById(`path`)
+					if (isDefined(pathCb)){
+						//add listener
+						pathCb.addEventListener(`change`, this.handlePathCb)
+					}
+
+					let fovCb = document.getElementById(`fovcb`)
+					if (isDefined(fovCb)){
+						fovCb.addEventListener(`change`, this.handleFovCb)
+						fovCb.style.visibility = `visible`
+					}
+				}
+			}
+		}
+		//handle path checkbox
+		static handlePathCb(event){
+			if (isDefined(event)){				
+				drawPath = event.target.checked
+			}
+		}
+		//handle fov checkbox
+		static handleFovCb(event){
+			if (isDefined(event)){
+				drawFOVi = event.target.checked
+			}
+		}
+		static createEvli(){
+			if (isDefined(maze)){
+				this.evil = maze.generatePoint(`exit`)
+
+				//ai for evil
+				this.evil.move = function(){
+					if (!maze.checkWall(Global.evil.x, Global.evil.y, Global.evil.x + 1, Global.evil.y)){
+						Global.evil.x++
+					}else if (!maze.checkWall(Global.evil.x, Global.evil.y, Global.evil.x - 1, Global.evil.y)) {
+						Global.evil.x--
+					}
+				}	
+
+			}
+		}
+	}
 
 	//context handler for using contexts of canvas
 	//works with any amount of canvases
 	//just put id of canvases to  funciton
-	class contextHandler {
-		constructor(...rest){	
+	class ContextHandler {
+		constructor(width, height, ...rest){	
 			for (let i = 0; i < rest.length; i++){
-				this[rest[i]] = this.initCtx(rest[i])
+				this[rest[i]] = this.initCtx(rest[i], width, height)
 				if (!isDefined(this[rest[i]])){
 					this[rest[i]].restore()
 				}
 			}
 		}
-		initCtx(id){
+		initCtx(id, width, height){
 			let canvas = document.getElementById(id)
 			if (isDefined(canvas)){
-				 return (canvas.getContext) ? canvas.getContext(`2d`, { alpha: false }) : undefined
+				canvas.height = height
+				canvas.width = width
+				if (canvas.getContext){
+					let ctx  = canvas.getContext(`2d`, { alpha: false })
+					ctx.beginPath()
+					ctx.globalAlpha = 1
+					ctx.lineCap = `round`
+					ctx.lineJoin = `round`
+					ctx.lineWidth = 2
+					ctx.globalCompositeOperation = `source-over`
+					ctx.save()				
+					return ctx
+				}else{
+					return undefined
+				}
 			}else {
 				return undefined
 			}		
@@ -654,9 +625,8 @@ var gmoveR = false
 			ctx.closePath()
 		}
 		renderFov(ctx){
-			let gradient = undefined
 			ctx.globalCompositeOperation = `darken`
-			gradient = ctx.createRadialGradient(this.x + this.d/2, this.y + this.d/2, this.d * fovRM, this.x + this.d/2, this.y + this.d/2, this.d * (fovRM * 2))
+			let gradient = ctx.createRadialGradient(this.x + this.d/2, this.y + this.d/2, this.d * fovRM, this.x + this.d/2, this.y + this.d/2, this.d * (fovRM * 2))
 			gradient.addColorStop(0, `white`) //from
 			gradient.addColorStop(1, `black`) //to
 			ctx.fillStyle = gradient
@@ -859,8 +829,8 @@ var gmoveR = false
 					ctx.strokeStyle = `purple`
 					ctx.globalCompositeOperation = `source-over`
 					for( let i = 1; i < this.path.length; i++){ 
-						ctx.moveTo(this.path[i-1].x * this.d +  this.d/2, this.path[i-1].y * this.d +  this.d/2)
-						ctx.lineTo( this.path[i].x* this.d +  this.d/2, this.path[i].y* this.d +  this.d/2)	
+						ctx.moveTo(this.path[i-1].x * this.d + this.d/2, this.path[i-1].y * this.d +  this.d/2)
+						ctx.lineTo( this.path[i].x* this.d + this.d/2, this.path[i].y* this.d +  this.d/2)	
 					}
 					ctx.closePath()
 					ctx.stroke()
@@ -918,6 +888,51 @@ var gmoveR = false
 			}else {
 				return false
 			}
+		}
+		generatePoint(type){
+			let point = new Point( Math.floor( Math.random() * this.width), Math.floor( Math.random() * this.height), this.d, type)
+			if (isDefined(reddot)){
+				if (point.is(reddot)) { 
+					return this.generatePoint(type)
+				}
+			}
+			if (isDefined(exit)){
+				if  (point.is(exit)){
+					return gthis.eneratePoint(type)
+				}
+			}
+			return point
+		}
+		generatePointAtWall(type){
+			let walls = [`up`,`right`,`down`,`left`]
+			//choose wall
+			let randomItem = walls[Math.floor(Math.random()*walls.length)]
+			//shose position on the wall
+			if (randomItem == `up`){
+				return new Point(Math.floor(Math.random() * this.width), 0, this.d,  type)
+			}else if (randomItem == `right`) {
+				return new Point( this.width - 1, Math.floor( Math.random() * this.height), this.d, type)
+			}else if (randomItem == `down`) {
+				return new Point(Math.floor(Math.random() * this.width),  this.height - 1, this.d, type)
+			}else if (randomItem ==`left` ) {
+				return new Point(0 ,Math.floor( Math.random() * this.height), this.d, type)
+			}else {
+				console.log(`unknown wall`)
+				return this.generatePoint(type)
+			}
+		}
+			//function createReddot
+		createReddot(){
+			return this.generatePointAtWall(`reddot`)	
+		}
+		//create exit
+		createExit() {
+			let cexit = this.generatePointAtWall(`exit`)
+			if (isDefined(reddot)){
+				return (cexit.is(reddot) ? this.createExit() : cexit )
+			}else {
+				return cexit
+			} 
 		}
 	}
 
