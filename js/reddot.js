@@ -49,19 +49,6 @@ var debug = true
 //movement
 var speed = 1
 
-var gmove = false
-
-var moveU = false
-var moveD = false
-var moveL = false
-var moveR = false
-
-var gmoveU = false
-var gmoveD = false
-var gmoveL = false
-var gmoveR = false
-
-
 /*
 	TODO list:
 	- add speed events 
@@ -174,200 +161,18 @@ var gmoveR = false
 	handlers {
 */
 
-	function handleKeys(){
-		if (isDefined(reddot) && isDefined(maze)){
+	function handleKeys(point, up, right, down, left, callback){
+		if (isDefined(point) && isDefined(maze)){
 			let move = false
-			if (gmoveU || gmoveR || gmoveD || gmoveL){
-				//continue to move
-				if (gmoveU && gmoveR){
-					reddot.view.x += speed
-					reddot.view.y -= speed
-					if (fuzzCheck(reddot.view.y/reddot.d, reddot.y -1) && fuzzCheck(reddot.view.x/reddot.d, reddot.x + 1)){
-						reddot.view.x = (reddot.x + 1)*reddot.d
-						reddot.view.y = (reddot.y - 1)*reddot.d
-						move = true
-						moveU = true
-						moveR = true
-						gmoveU = false
-						gmoveR = false
-					}
-
-				}else if (gmoveR && gmoveD) {
-					reddot.view.x += speed
-					reddot.view.y += speed
-					if (fuzzCheck(reddot.view.x/reddot.d, reddot.x + 1) && fuzzCheck( reddot.view.y/reddot.d, reddot.y + 1)){
-						reddot.view.x = (reddot.x + 1)*reddot.d
-						reddot.view.y = (reddot.y + 1)*reddot.d
-						move = true
-						moveR = true
-						moveD = true
-						gmove = false
-						gmoveR = false
-						gmoveD = false
-					}
-					
-				}else if (gmoveD && gmoveL) {
-					reddot.view.x -= speed
-					reddot.view.y += speed
-					if (fuzzCheck( reddot.view.y/reddot.d, reddot.y + 1) && fuzzCheck(reddot.view.x/reddot.d, reddot.x -1)) {
-						reddot.view.x = (reddot.x -1)*reddot.d
-						reddot.view.y = (reddot.y + 1)*reddot.d
-						move = true
-						moveD = true
-						moveL = true
-						gmoveD = false
-						gmoveL = false
-					}
-					
-				}else if (gmoveL && gmoveU) {
-					reddot.view.x -= speed
-					reddot.view.y -= speed
-					if (fuzzCheck(reddot.view.x/reddot.d, reddot.x -1) && fuzzCheck(reddot.view.y/reddot.d, reddot.y -1)){
-						reddot.view.x = (reddot.x -1)*reddot.d
-						reddot.view.y = (reddot.y - 1)*reddot.d
-						move = true
-						moveL = true
-						moveU = true
-						gmoveL = false
-						gmoveU = true
-					}
-				}else if (gmoveU) {
-					reddot.view.y -= speed
-					if (fuzzCheck(reddot.view.y/reddot.d, reddot.y -1)){
-						reddot.view.y = (reddot.y - 1)*reddot.d
-						move = true
-						moveU = true
-						gmoveU = false
-					}
-					
-				}else if (gmoveR) {
-					reddot.view.x += speed
-					if (fuzzCheck(reddot.view.x/reddot.d, reddot.x + 1)){
-						reddot.view.x = (reddot.x + 1)*reddot.d
-						move = true
-						moveR = true
-						gmoveR = false
-					}
-				}else if (gmoveD) {
-					reddot.view.y += speed
-					if (fuzzCheck( reddot.view.y/reddot.d, reddot.y + 1)) {
-						reddot.view.y = (reddot.y + 1)*reddot.d
-						move = true
-						moveD = true
-						gmoveD = false
-					}
-				}else if (gmoveL) {
-					reddot.view.x -= speed
-					if (fuzzCheck(reddot.view.x/reddot.d, reddot.x -1)){
-						reddot.view.x = (reddot.x -1)*reddot.d
-						move = true
-						moveL = true
-						gmoveL = false
-					}
-				}
+			if (point.gmoveU || point.gmoveR || point.gmoveD || point.gmoveL){
+				move = point.handleContinueMove()
 			}else{
-				//start new move
-				if (Global.upM && Global.rightM){
-					if (!maze.checkWall(reddot.x, reddot.y, reddot.x+1, reddot.y-1)){
-						gmoveU = gmoveR = true
-					}
-				}else if (Global.rightM && Global.downM) {
-					if (!maze.checkWall(reddot.x, reddot.y, reddot.x+1, reddot.y+1)){
-						gmoveR = gmoveD = true
-					}
-					
-				}else if (Global.downM && Global.leftM) {
-					if (!maze.checkWall(reddot.x, reddot.y, reddot.x-1, reddot.y+1)){
-						gmoveD = gmoveL = true
-					}
-					
-				}else if (Global.leftM && Global.upM) {
-					if (!maze.checkWall(reddot.x, reddot.y, reddot.x-1, reddot.y-1)){
-						gmoveL = gmoveU = true
-					}
-				}else if (Global.upM) {
-					if (!maze.checkWall(reddot.x, reddot.y, reddot.x, reddot.y-1)){
-						gmoveU = true
-					}
-				}else if (Global.rightM) {
-					if (!maze.checkWall(reddot.x, reddot.y, reddot.x+1, reddot.y)){
-						gmoveR = true
-					}
-				}else if (Global.downM) {
-					if (!maze.checkWall(reddot.x, reddot.y, reddot.x, reddot.y+1)){
-						gmoveD = true
-					}
-				}else if (Global.leftM) {
-					if (!maze.checkWall(reddot.x, reddot.y, reddot.x-1, reddot.y)){
-						gmoveL = true
-					}
-				}
+				point.handleStartMove( up, right, down, left)
 			}
 			if (move){
-				if(moveU && moveR){
-					reddot.y -= 1
-					moveU = false
-					gmoveU = false
-
-					reddot.x += 1
-					moveR = false	
-					gmoveR = false
-				}else if (moveR && moveD) {
-					reddot.x += 1
-					moveR = false	
-					gmoveR = false
-
-					reddot.y +=1
-					moveD = false
-					gmoveD = false
-					
-				}else if (moveD && moveL) {
-					reddot.y +=1
-					moveD = false
-					gmoveD = false
-
-					reddot.x -= 1
-					moveL = false
-					gmoveL = false
-					
-				}else if (moveL && moveU) {
-					reddot.x -= 1
-					moveL = false
-					gmoveL = false
-
-					reddot.y -= 1
-					moveU = false
-					gmoveU = false
-					
-				}else if (moveU) {
-					reddot.y -= 1
-					moveU = false
-					gmoveU = false
-					
-				}else if (moveR) {
-					reddot.x += 1
-					moveR = false	
-					gmoveR = false
-				}else if (moveD) {
-					reddot.y +=1
-					moveD = false
-					gmoveD = false
-					
-				}else if (moveL) {
-					reddot.x -= 1
-					moveL = false
-					gmoveL = false
-				}
-				//add point to path
-				if (isDefined(maze)){
-					maze.addPath(reddot)
-				}
-				//check if fovEnh
-				checkFovEnh()
-				if (reddot.is(exit)){
-					startMaze()
-				}
-
+				point.handleFinishMove()
+				
+				callback(point)
 			}
 		}
 
@@ -384,7 +189,18 @@ var gmoveR = false
 		let canvasID = backCanvas
 
 		globalContext.clearCtx(canvasID)
-		handleKeys()
+		//handleKeys()
+		handleKeys(reddot, Global.upM, Global.rightM, Global.downM, Global.leftM, function(point){
+			//add point to path
+			if (isDefined(maze)){
+				maze.addPath(point)
+			}
+			//check if fovEnh
+			checkFovEnh()
+			if (point.is(exit)){
+				startMaze()
+			}
+		})
 		//draw exit
 		if (isDefined(exit)){
 			exit.render(globalContext.getCtx(canvasID))
@@ -572,7 +388,7 @@ var gmoveR = false
 		}
 	}
 	class Point {
-		constructor(x = 0 , y = 0, d = 0, type = undefined){
+		constructor(x = 0 , y = 0, d = 0, speed = 0, type = undefined){
 			this.x = x
 			this.y = y
 			this.d = d
@@ -580,6 +396,15 @@ var gmoveR = false
 			this.view = {}
 			this.view.x = x * d
 			this.view.y = y * d
+			this.speed = speed
+			this.moveU = false
+			this.moveR = false
+			this.moveD = false
+			this.moveL = false
+			this.gmoveU = false
+			this.gmoveR = false
+			this.gmoveD = false
+			this.gmoveL = false
 		}
 		is(point){
 			return (this.x == point.x && this.y == point.y)
@@ -607,12 +432,6 @@ var gmoveR = false
 			ctx.closePath()
 			ctx.fill()
 		}
-		renderExit(ctx){
-			ctx.strokeStyle = `red`
-			ctx.globalCompositeOperation = `source-over`
-			ctx.strokeRect(this.x * this.d + this.d/4, this.y * this.d + this.d/4 , this.d/2, this.d/2)
-			ctx.closePath()
-		}
 		renderExitView(ctx){
 			ctx.strokeStyle = `red`
 			ctx.globalCompositeOperation = `source-over`
@@ -633,6 +452,190 @@ var gmoveR = false
 			ctx.fillStyle = gradient
 			ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height)
 			ctx.closePath()
+		}
+		handleStartMove(up, right, down, left){
+			//start new move
+			if (up && right){
+				if (!maze.checkWall(this.x, this.y, this.x+1, this.y-1)){
+					this.gmoveU = this.gmoveR = true
+				}
+			}else if (right && down) {
+				if (!maze.checkWall(this.x, this.y, this.x+1, this.y+1)){
+					this.gmoveR = this.gmoveD = true
+				}
+				
+			}else if (down && left) {
+				if (!maze.checkWall(this.x, this.y, this.x-1, this.y+1)){
+					this.gmoveD = this.gmoveL = true
+				}
+				
+			}else if (left && up) {
+				if (!maze.checkWall(this.x, this.y, this.x-1, this.y-1)){
+					this.gmoveL = this.gmoveU = true
+				}
+			}else if (up) {
+				if (!maze.checkWall(this.x, this.y, this.x, this.y-1)){
+					this.gmoveU = true
+				}
+			}else if (right) {
+				if (!maze.checkWall(this.x, this.y, this.x+1, this.y)){
+					this.gmoveR = true
+				}
+			}else if (down) {
+				if (!maze.checkWall(this.x, this.y, this.x, this.y+1)){
+					this.gmoveD = true
+				}
+			}else if (left) {
+				if (!maze.checkWall(this.x, this.y, this.x-1, this.y)){
+					this.gmoveL = true
+				}
+			}
+		}
+		handleContinueMove(){
+			let move = false
+			//continue to move
+			if (this.gmoveU && this.gmoveR){
+				this.view.x += this.speed
+				this.view.y -= this.speed
+				if (fuzzCheck(this.view.y/this.d, this.y -1) && fuzzCheck(this.view.x/this.d, this.x + 1)){
+					this.view.x = (this.x + 1)*this.d
+					this.view.y = (this.y - 1)*this.d
+					move = true
+					this.moveU = true
+					this.moveR = true
+					this.gmoveU = false
+					this.gmoveR = false
+				}
+
+			}else if (this.gmoveR && this.gmoveD) {
+				this.view.x += this.speed
+				this.view.y += this.speed
+				if (fuzzCheck(this.view.x/this.d, this.x + 1) && fuzzCheck( this.view.y/this.d, this.y + 1)){
+					this.view.x = (this.x + 1)*this.d
+					this.view.y = (this.y + 1)*this.d
+					move = true
+					this.moveR = true
+					this.moveD = true
+					this.gmoveR = false
+					this.gmoveD = false
+				}
+				
+			}else if (this.gmoveD && this.gmoveL) {
+				this.view.x -= this.speed
+				this.view.y += this.speed
+				if (fuzzCheck( this.view.y/this.d, this.y + 1) && fuzzCheck(this.view.x/this.d, this.x -1)) {
+					this.view.x = (this.x -1)*this.d
+					this.view.y = (this.y + 1)*this.d
+					move = true
+					this.moveD = true
+					this.moveL = true
+					this.gmoveD = false
+					this.gmoveL = false
+				}
+				
+			}else if (this.gmoveL && this.gmoveU) {
+				this.view.x -= this.speed
+				this.view.y -= this.speed
+				if (fuzzCheck(this.view.x/this.d, this.x -1) && fuzzCheck(this.view.y/this.d, this.y -1)){
+					this.view.x = (this.x -1)*this.d
+					this.view.y = (this.y - 1)*this.d
+					move = true
+					this.moveL = true
+					this.moveU = true
+					this.gmoveL = false
+					this.gmoveU = true
+				}
+			}else if (this.gmoveU) {
+				this.view.y -= this.speed
+				if (fuzzCheck(this.view.y/this.d, this.y -1)){
+					this.view.y = (this.y - 1)*this.d
+					move = true
+					this.moveU = true
+					this.gmoveU = false
+				}
+				
+			}else if (this.gmoveR) {
+				this.view.x += this.speed
+				if (fuzzCheck(this.view.x/this.d, this.x + 1)){
+					this.view.x = (this.x + 1)*this.d
+					move = true
+					this.moveR = true
+					this.gmoveR = false
+				}
+			}else if (this.gmoveD) {
+				this.view.y += this.speed
+				if (fuzzCheck( this.view.y/this.d, this.y + 1)) {
+					this.view.y = (this.y + 1)*this.d
+					move = true
+					this.moveD = true
+					this.gmoveD = false
+				}
+			}else if (this.gmoveL) {
+				this.view.x -= this.speed
+				if (fuzzCheck(this.view.x/this.d, this.x -1)){
+					this.view.x = (this.x -1)*this.d
+					move = true
+					this.moveL = true
+					this.gmoveL = false
+				}
+			}
+			return move
+		}
+		handleFinishMove(){
+			if(this.moveU && this.moveR){
+				this.y -= 1
+				this.moveU = false
+				this.gmoveU = false
+
+				this.x += 1
+				this.moveR = false	
+				this.gmoveR = false
+			}else if (this.moveR && this.moveD) {
+				this.x += 1
+				this.moveR = false	
+				this.gmoveR = false
+
+				this.y +=1
+				this.moveD = false
+				this.gmoveD = false
+				
+			}else if (this.moveD && this.moveL) {
+				this.y +=1
+				this.moveD = false
+				this.gmoveD = false
+
+				this.x -= 1
+				this.moveL = false
+				this.gmoveL = false
+				
+			}else if (this.moveL && this.moveU) {
+				this.x -= 1
+				this.moveL = false
+				this.gmoveL = false
+
+				this.y -= 1
+				this.moveU = false
+				this.gmoveU = false
+				
+			}else if (this.moveU) {
+				this.y -= 1
+				this.moveU = false
+				this.gmoveU = false
+				
+			}else if (this.moveR) {
+				this.x += 1
+				this.moveR = false	
+				this.gmoveR = false
+			}else if (this.moveD) {
+				this.y +=1
+				this.moveD = false
+				this.gmoveD = false
+				
+			}else if (this.moveL) {
+				this.x -= 1
+				this.moveL = false
+				this.gmoveL = false
+			}
 		}
 	}
 	//square to fill maze
@@ -891,7 +894,7 @@ var gmoveR = false
 			}
 		}
 		generatePoint(type){
-			let point = new Point( Math.floor( Math.random() * this.width), Math.floor( Math.random() * this.height), this.d, type)
+			let point = new Point( Math.floor( Math.random() * this.width), Math.floor( Math.random() * this.height), this.d, speed, type)
 			if (isDefined(reddot)){
 				if (point.is(reddot)) { 
 					return this.generatePoint(type)
@@ -910,13 +913,13 @@ var gmoveR = false
 			let randomItem = walls[Math.floor(Math.random()*walls.length)]
 			//shose position on the wall
 			if (randomItem == `up`){
-				return new Point(Math.floor(Math.random() * this.width), 0, this.d,  type)
+				return new Point(Math.floor(Math.random() * this.width), 0, this.d, speed, type)
 			}else if (randomItem == `right`) {
-				return new Point( this.width - 1, Math.floor( Math.random() * this.height), this.d, type)
+				return new Point( this.width - 1, Math.floor( Math.random() * this.height), this.d, speed, type)
 			}else if (randomItem == `down`) {
-				return new Point(Math.floor(Math.random() * this.width),  this.height - 1, this.d, type)
+				return new Point(Math.floor(Math.random() * this.width),  this.height - 1, this.d, speed, type)
 			}else if (randomItem ==`left` ) {
-				return new Point(0 ,Math.floor( Math.random() * this.height), this.d, type)
+				return new Point(0 ,Math.floor( Math.random() * this.height), this.d, speed, type)
 			}else {
 				console.log(`unknown wall`)
 				return this.generatePoint(type)
