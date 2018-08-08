@@ -158,28 +158,6 @@ var speed = 1
 	}
 /*
 }
-	handlers {
-*/
-
-	function handleKeys(point, up, right, down, left, callback){
-		if (isDefined(point) && isDefined(maze)){
-			let move = false
-			if (point.gmoveU || point.gmoveR || point.gmoveD || point.gmoveL){
-				move = point.handleContinueMove()
-			}else{
-				point.handleStartMove( up, right, down, left)
-			}
-			if (move){
-				point.handleFinishMove()
-				
-				callback(point)
-			}
-		}
-
-	}
-
-/*
-}
 
 	draw {
 */
@@ -190,17 +168,7 @@ var speed = 1
 
 		globalContext.clearCtx(canvasID)
 		//handleKeys()
-		handleKeys(reddot, Global.upM, Global.rightM, Global.downM, Global.leftM, function(point){
-			//add point to path
-			if (isDefined(maze)){
-				maze.addPath(point)
-			}
-			//check if fovEnh
-			checkFovEnh()
-			if (point.is(exit)){
-				startMaze()
-			}
-		})
+		Global.handleKeys(reddot, Global.upM, Global.rightM, Global.downM, Global.leftM)
 		//draw exit
 		if (isDefined(exit)){
 			exit.render(globalContext.getCtx(canvasID))
@@ -336,6 +304,21 @@ var speed = 1
 
 			}
 		}
+		static handleKeys(point, up, right, down, left){
+			if (isDefined(point) && isDefined(maze)){
+				let move = false
+				if (point.gmoveU || point.gmoveR || point.gmoveD || point.gmoveL){
+					move = point.handleContinueMove()
+				}else{
+					point.handleStartMove( up, right, down, left)
+				}
+				if (move){
+					point.handleFinishMove()
+					point.moveCallback()
+				}
+			}
+
+		}
 	}
 
 	//context handler for using contexts of canvas
@@ -424,6 +407,15 @@ var speed = 1
 					default:
 						break
 				}
+			}
+		}
+		moveCallback(){
+			switch(this.type){
+				case `reddot`:
+					this.reddotMoveCalback()
+					break
+				default:
+					break
 			}
 		}
 		renderReddotView(ctx){
@@ -635,6 +627,17 @@ var speed = 1
 				this.x -= 1
 				this.moveL = false
 				this.gmoveL = false
+			}
+		}
+		reddotMoveCalback(){
+			//add point to path
+			if (isDefined(maze)){
+				maze.addPath(this)
+			}
+			//check if fovEnh
+			checkFovEnh()
+			if (this.is(exit)){
+				startMaze()
 			}
 		}
 	}
