@@ -10,17 +10,10 @@ const sqfd = 20
 
 const cwidth = sqfX*sqfd
 const cheight = sqfY*sqfd
-// const cwidth = window.innerWidth
-// const cheight = window.innerHeight
-
 
 const topCanvas = `reddot`
 const middleCanvas = `maze`
 const backCanvas = `fov`
-
-//start pos for reddot
-var startX = 0
-var startY = 0
 
 //const for random place borders 
 const rPlace = 0.3
@@ -35,7 +28,6 @@ var cTimers = undefined
 var maze = undefined
 var reddot = undefined
 var exit = undefined
-var fovEnhArr = undefined
 
 var globalContext = undefined
 
@@ -90,18 +82,16 @@ var speed = 1
 		maze.createMaze(`eller`)
 		//create point
 		reddot = maze.createReddot()
-		startX = reddot.x
-		startY = reddot.y
+		// startX = reddot.x
+		// startY = reddot.y
 		//clear path
-		maze.addPath( new Point( startX, startY ) )
-				//create exit
+		maze.addPath( new Point( reddot.x, reddot.y ) )
+		//create exit
 		exit = maze.createExit()
 		//create fov enhancement points
 		cTimers = 0
-		fovEnhArr = new Array(5)
-		for (let i = 0; i < fovEnhArr.length; i++){
-			fovEnhArr[i] = maze.generatePoint(`fovEnh`)
-		}
+		
+		maze.createFovEnh(5)
 
 		draw3(middleCanvas)
 	}
@@ -117,44 +107,24 @@ var speed = 1
 	additional funcitons {
 */
 	//decreaseFov
-	function decreaseFovf(){
-		if (fovRM > 1){
-			fovRM--
-			currentTimer = undefined
-			if (cTimers > 1){
-				currentTimer = setTimeout(decreaseFovf, 10000)
-			}
-		}
-	}
+	// function decreaseFovf(){
+	// 	if (fovRM > 1){
+	// 		fovRM--
+	// 		currentTimer = undefined
+	// 		if (cTimers > 1){
+	// 			//currentTimer = setTimeout(decreaseFovf, 10000)
+	// 		}
+	// 	}
+	// }
 	//degradation of fov
 	function fovDeg(){
-		let timerID = setTimeout(decreaseFovf, 10000)
+		let timerID = setTimeout(Global.decreaseFovf, 10000)
 		cTimers++
 		//for stacking fov
 		if (isDefined(currentTimer)){
 			clearTimeout(currentTimer)
 		}
 		return timerID
-	}
-
-/*
-}
-	special cheecks{
-*/
-	//check if reddot in fovEnh
-	function checkFovEnh(){
-		if (isDefined(reddot) && isDefined(fovEnhArr)){
-			for (let i = 0; i < fovEnhArr.length; i++){
-				if (reddot.is(fovEnhArr[i])){
-					fovRM++
-					fovEnhArr.splice( i, 1)
-					currentTimer = fovDeg()
-				}
-			}
-		}else {
-			console.log(`reddot/fovEnhArr is not defined`)
-			return false			
-		}
 	}
 /*
 }
@@ -167,14 +137,15 @@ var speed = 1
 		let canvasID = backCanvas
 
 		globalContext.clearCtx(canvasID)
-		//handleKeys()
+
 		Global.handleKeys(reddot, Global.upM, Global.rightM, Global.downM, Global.leftM)
 		//draw exit
 		if (isDefined(exit)){
 			exit.render(globalContext.getCtx(canvasID))
 		}
-		for (let i = 0; i < fovEnhArr.length; i++){
-			fovEnhArr[i].render(globalContext.getCtx(canvasID))
+
+		if (isDefined(maze)){
+			maze.renderFovEnhArr(globalContext.getCtx(canvasID))
 		}
 		//draw fov
 		if (isDefined(reddot) && drawFOVi){
@@ -182,6 +153,7 @@ var speed = 1
 		}
 
 		canvasID = topCanvas
+
 		globalContext.clearCtx(canvasID)
 		//draw path
 		if (isDefined(maze) && drawPath){
@@ -218,6 +190,10 @@ var speed = 1
 			this.downM = false
 			this.rightM = false
 			this.leftM = false
+
+			//this.reddot = undefined
+			// this.maze = undefined
+			// this.exit = undefined
 		}
 		static initListeners(){
 			if (isDefined(document)) {
@@ -319,6 +295,15 @@ var speed = 1
 			}
 
 		}
+		static decreaseFovf(){
+			if (fovRM > 1){
+				fovRM--
+				currentTimer = undefined
+				if (cTimers > 1){
+					currentTimer = setTimeout(this.decreaseFovf, 10000)
+				}
+			}
+		}
 	}
 
 	//context handler for using contexts of canvas
@@ -394,28 +379,16 @@ var speed = 1
 		}
 		render(ctx){
 			if (isDefined(ctx)){
-				switch (this.type) {
-					case `reddot`:
-						this.renderReddotView(ctx)
-						break
-					case `exit`:
-						this.renderExitView(ctx)
-						break
-					case `fovEnh`:
-						this.renderFovEnhView(ctx)
-						break
-					default:
-						break
+				let renderFunction = this[`render${this.type}View`]
+				if (isDefined(renderFunction)){
+					this[`render${this.type}View`](ctx)
 				}
 			}
 		}
 		moveCallback(){
-			switch(this.type){
-				case `reddot`:
-					this.reddotMoveCalback()
-					break
-				default:
-					break
+			let renderFunction = this[`render${this.type}View`]
+			if (isDefined(renderFunction)){
+				this[`move${this.type}Callback`]()
 			}
 		}
 		renderReddotView(ctx){
@@ -629,13 +602,12 @@ var speed = 1
 				this.gmoveL = false
 			}
 		}
-		reddotMoveCalback(){
+		moveReddotCallback(){
 			//add point to path
 			if (isDefined(maze)){
 				maze.addPath(this)
+				maze.checkFovEnh(this)
 			}
-			//check if fovEnh
-			checkFovEnh()
 			if (this.is(exit)){
 				startMaze()
 			}
@@ -672,6 +644,8 @@ var speed = 1
 				}
 			}
 			this.path = undefined
+
+			this.fovEnhArr = undefined
 		}
 		createMaze(type){
 			//for performance testing
@@ -826,10 +800,6 @@ var speed = 1
 			ctx.closePath()
 			ctx.stroke()
 		}
-		addPath(point){
-			if (!isDefined(this.path)) { this.path = new Array() }
-			this.path.push( new Point( point.x, point.y ) )
-		}
 		renderPath(ctx){
 			if (isDefined(this.path)){
 				if (this.path.length > 1){
@@ -843,6 +813,17 @@ var speed = 1
 					ctx.stroke()
 				}
 			}
+		}
+		renderFovEnhArr(ctx){
+			if (isDefined(this.fovEnhArr)){
+				for (let i = 0; i < this.fovEnhArr.length; i++){
+					this.fovEnhArr[i].render(ctx)
+				}
+			}
+		}
+		addPath(point){
+			if (!isDefined(this.path)) { this.path = new Array() }
+			this.path.push( new Point( point.x, point.y ) )
 		}
 		checkWall(xf, yf, xt, yt){
 			if(  xt < 0 || yt < 0 || xt > this.width - 1 || yt > this.height - 1){
@@ -930,16 +911,37 @@ var speed = 1
 		}
 			//function createReddot
 		createReddot(){
-			return this.generatePointAtWall(`reddot`)	
+			return this.generatePointAtWall(`Reddot`)	
 		}
 		//create exit
 		createExit() {
-			let cexit = this.generatePointAtWall(`exit`)
+			let cexit = this.generatePointAtWall(`Exit`)
 			if (isDefined(reddot)){
 				return (cexit.is(reddot) ? this.createExit() : cexit )
 			}else {
 				return cexit
 			} 
+		}
+		createFovEnh(count){
+			this.fovEnhArr = new Array(count)
+			for (let i = 0; i < this.fovEnhArr.length; i++){
+				this.fovEnhArr[i] = this.generatePoint(`FovEnh`)
+			}
+		}
+		//check if reddot in fovEnh
+		checkFovEnh(point){
+			if (isDefined(point) && isDefined(this.fovEnhArr)){
+				for (let i = 0; i < this.fovEnhArr.length; i++){
+					if (point.is(this.fovEnhArr[i])){
+						fovRM++
+						this.fovEnhArr.splice( i, 1)
+						currentTimer = fovDeg()
+					}
+				}
+			}else {
+				console.log(`reddot/fovEnhArr is not defined`)
+				return false			
+			}
 		}
 	}
 
