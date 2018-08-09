@@ -134,11 +134,15 @@ var speed = 1
 		if (isDefined(maze)){
 			maze.renderFovEnhArr(globalContext.getCtx(canvasID))
 		}
+		if (isDefined(Global.evil)){
+			Global.handleMove(Global.evil)
+			//global.evil.move()
+			Global.evil.render(globalContext.getCtx(canvasID))
+		}
 		//draw fov
 		if (isDefined(reddot) && drawFOVi){
 			reddot.renderFov(globalContext.getCtx(canvasID))
 		}
-
 		canvasID = topCanvas
 
 		globalContext.clearCtx(canvasID)
@@ -150,11 +154,7 @@ var speed = 1
 		if (isDefined(reddot)){
 			reddot.render(globalContext.getCtx(canvasID))
 		}
-		if (isDefined(Global.evil)){
-			Global.handleMove(Global.evil)
-			//global.evil.move()
-			Global.evil.render(globalContext.getCtx(canvasID))
-		}
+		
 	}
 	function draw3(canvasID){
 		globalContext.clearCtx(canvasID)
@@ -530,71 +530,30 @@ var speed = 1
 		handleFinishMove(){
 			if(this.moveU && this.moveR){
 				this.y -= 1
-				// this.moveU = false
-				// this.gmoveU = false
-
 				this.x += 1
-				// this.moveR = false	
-				// this.gmoveR = false
 			}else if (this.moveR && this.moveD) {
 				this.x += 1
-				// this.moveR = false	
-				// this.gmoveR = false
-
 				this.y +=1
-				// this.moveD = false
-				// this.gmoveD = false
-				
 			}else if (this.moveD && this.moveL) {
 				this.y +=1
-				// this.moveD = false
-				// this.gmoveD = false
-
 				this.x -= 1
-				// this.moveL = false
-				// this.gmoveL = false
-				
 			}else if (this.moveL && this.moveU) {
 				this.x -= 1
-				// this.moveL = false
-				// this.gmoveL = false
-
 				this.y -= 1
-				// this.moveU = false
-				// this.gmoveU = false
-				
 			}else if (this.moveU) {
 				this.y -= 1
-				// this.moveU = false
-				// this.gmoveU = false
-				
 			}else if (this.moveR) {
 				this.x += 1
-				// this.moveR = false	
-				// this.gmoveR = false
 			}else if (this.moveD) {
 				this.y +=1
-				// this.moveD = false
-				// this.gmoveD = false
-				
 			}else if (this.moveL) {
 				this.x -= 1
-				// this.moveL = false
-				// this.gmoveL = false
 			}
 		}
 		handleWrongMove(){
 
 		}
-	}
-	class Reddot extends Point {
-		render(ctx){
-			ctx.fillStyle = `red` 
-			ctx.arc(this.view.x + this.d/2 , this.view.y + this.d/2, (this.d-5)/2 , 0, 2 * Math.PI)
-			ctx.closePath()
-			ctx.fill()
-		}
-		moveCallback(){
+		clearMove(){
 			this.moveU = false
 			this.gmoveU = false
 
@@ -606,7 +565,17 @@ var speed = 1
 
 			this.moveL = false
 			this.gmoveL = false
-
+		}
+	}
+	class Reddot extends Point {
+		render(ctx){
+			ctx.fillStyle = `red` 
+			ctx.arc(this.view.x + this.d/2 , this.view.y + this.d/2, (this.d-5)/2 , 0, 2 * Math.PI)
+			ctx.closePath()
+			ctx.fill()
+		}
+		moveCallback(){
+			this.clearMove()
 			//add point to path
 			if (isDefined(maze)){
 				maze.addPath(this)
@@ -649,17 +618,7 @@ var speed = 1
 			let down = this.moveD
 			let left = this.moveL
 
-			this.moveU = false
-			this.gmoveU = false
-
-			this.moveR = false	
-			this.gmoveR = false
-			
-			this.moveD = false
-			this.gmoveD = false
-
-			this.moveL = false
-			this.gmoveL = false
+			this.clearMove()
 
 			Global.handleMove(this, up, right, down, left)
 		}
@@ -672,7 +631,9 @@ var speed = 1
 			let left = (up || right || down) ? false : move[Math.floor(Math.random()*move.length)]
 
 
-			Global.handleMove(this, up, right, down, left)
+			//setTimeout(
+				Global.handleMove(this, up, right, down, left)//, 3000
+				//)
 		}
 		render(ctx){
 			ctx.strokeStyle = `purple`
