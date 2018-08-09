@@ -77,13 +77,10 @@ var speed = 1
 			clearTimeout(currentTimer)
 		}
 		//create new field
-		maze = new SqfField(sqfX, sqfY, sqfd)
-		//create maze using method
-		maze.createMaze(`eller`)
+		maze = (new SqfField(sqfX, sqfY, sqfd)).createMaze(`eller`)
 		//create point
 		reddot = maze.createReddot()
-		// startX = reddot.x
-		// startY = reddot.y
+
 		//clear path
 		maze.addPath( new Point( reddot.x, reddot.y ) )
 		//create exit
@@ -106,16 +103,6 @@ var speed = 1
 }
 	additional funcitons {
 */
-	//decreaseFov
-	// function decreaseFovf(){
-	// 	if (fovRM > 1){
-	// 		fovRM--
-	// 		currentTimer = undefined
-	// 		if (cTimers > 1){
-	// 			//currentTimer = setTimeout(decreaseFovf, 10000)
-	// 		}
-	// 	}
-	// }
 	//degradation of fov
 	function fovDeg(){
 		let timerID = setTimeout(Global.decreaseFovf, 10000)
@@ -138,7 +125,7 @@ var speed = 1
 
 		globalContext.clearCtx(canvasID)
 
-		Global.handleKeys(reddot, Global.upM, Global.rightM, Global.downM, Global.leftM)
+		Global.handleMove(reddot, Global.upM, Global.rightM, Global.downM, Global.leftM)
 		//draw exit
 		if (isDefined(exit)){
 			exit.render(globalContext.getCtx(canvasID))
@@ -280,7 +267,7 @@ var speed = 1
 
 			}
 		}
-		static handleKeys(point, up, right, down, left){
+		static handleMove(point, up, right, down, left){
 			if (isDefined(point) && isDefined(maze)){
 				let move = false
 				if (point.gmoveU || point.gmoveR || point.gmoveD || point.gmoveL){
@@ -300,7 +287,7 @@ var speed = 1
 				fovRM--
 				currentTimer = undefined
 				if (cTimers > 1){
-					currentTimer = setTimeout(this.decreaseFovf, 10000)
+					currentTimer = setTimeout(Global.decreaseFovf, 10000)
 				}
 			}
 		}
@@ -356,11 +343,11 @@ var speed = 1
 		}
 	}
 	class Point {
-		constructor(x = 0 , y = 0, d = 0, speed = 0, type = undefined){
+		constructor(x = 0 , y = 0, d = 0, speed = 0){
 			this.x = x
 			this.y = y
 			this.d = d
-			this.type = type
+			this.type = this.constructor.name
 			this.view = {}
 			this.view.x = x * d
 			this.view.y = y * d
@@ -377,6 +364,17 @@ var speed = 1
 		is(point){
 			return (this.x == point.x && this.y == point.y)
 		}
+		copyFrom(point){
+			this.x = point.x
+			this.y = point.y
+			this.d = point.d
+			this.view = {}
+			this.view.x = point.view.x
+			this.view.y = point.view.y
+			this.speed = point.speed
+
+			return this
+		}
 		render(ctx){
 			if (isDefined(ctx)){
 				let renderFunction = this[`render${this.type}View`]
@@ -386,37 +384,10 @@ var speed = 1
 			}
 		}
 		moveCallback(){
-			let renderFunction = this[`render${this.type}View`]
-			if (isDefined(renderFunction)){
+			let moveCallback = this[`move${this.type}Callback`]
+			if (isDefined(moveCallback)){
 				this[`move${this.type}Callback`]()
 			}
-		}
-		renderReddotView(ctx){
-			ctx.fillStyle = `red` 
-			ctx.arc(this.view.x + this.d/2 , this.view.y + this.d/2, (this.d-5)/2 , 0, 2 * Math.PI)
-			ctx.closePath()
-			ctx.fill()
-		}
-		renderExitView(ctx){
-			ctx.strokeStyle = `red`
-			ctx.globalCompositeOperation = `source-over`
-			ctx.strokeRect(this.view.x + this.d/4, this.view.y + this.d/4 , this.d/2, this.d/2)
-			ctx.closePath()
-		}
-		renderFovEnhView(ctx){
-			ctx.strokeStyle = `blue`
-			ctx.globalCompositeOperation = `source-over`
-			ctx.strokeRect(this.view.x + this.d/4, this.view.y + this.d/4 , this.d/2, this.d/2)
-			ctx.closePath()
-		}
-		renderFov(ctx){
-			ctx.globalCompositeOperation = `darken`
-			let gradient = ctx.createRadialGradient(this.view.x + this.d/2, this.view.y + this.d/2, this.d * fovRM, this.view.x + this.d/2, this.view.y + this.d/2, this.d * (fovRM * 2))
-			gradient.addColorStop(0, `white`) //from
-			gradient.addColorStop(1, `black`) //to
-			ctx.fillStyle = gradient
-			ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height)
-			ctx.closePath()
 		}
 		handleStartMove(up, right, down, left){
 			//start new move
@@ -602,7 +573,15 @@ var speed = 1
 				this.gmoveL = false
 			}
 		}
-		moveReddotCallback(){
+	}
+	class Reddot extends Point {
+		render(ctx){
+			ctx.fillStyle = `red` 
+			ctx.arc(this.view.x + this.d/2 , this.view.y + this.d/2, (this.d-5)/2 , 0, 2 * Math.PI)
+			ctx.closePath()
+			ctx.fill()
+		}
+		moveCallback(){
 			//add point to path
 			if (isDefined(maze)){
 				maze.addPath(this)
@@ -611,6 +590,31 @@ var speed = 1
 			if (this.is(exit)){
 				startMaze()
 			}
+		}
+		renderFov(ctx){
+			ctx.globalCompositeOperation = `darken`
+			let gradient = ctx.createRadialGradient(this.view.x + this.d/2, this.view.y + this.d/2, this.d * fovRM, this.view.x + this.d/2, this.view.y + this.d/2, this.d * (fovRM * 2))
+			gradient.addColorStop(0, `white`) //from
+			gradient.addColorStop(1, `black`) //to
+			ctx.fillStyle = gradient
+			ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height)
+			ctx.closePath()
+		}
+	}
+	class Exit extends Point {
+		render(ctx){
+			ctx.strokeStyle = `red`
+			ctx.globalCompositeOperation = `source-over`
+			ctx.strokeRect(this.view.x + this.d/4, this.view.y + this.d/4 , this.d/2, this.d/2)
+			ctx.closePath()
+		}
+	}
+	class FovEnh extends Point {
+		render(ctx){
+			ctx.strokeStyle = `blue`
+			ctx.globalCompositeOperation = `source-over`
+			ctx.strokeRect(this.view.x + this.d/4, this.view.y + this.d/4 , this.d/2, this.d/2)
+			ctx.closePath()
 		}
 	}
 	//square to fill maze
@@ -659,7 +663,7 @@ var speed = 1
 	  				break
 	  		}
 		  	time = isDefined(performance) ? performance.now() - time : 0
-			console.log(type + ` time: ${round(time)}`)
+			console.log(type + ` time: ${time}`)
 	  		//borders are the same
 	  		//fill borders horizontal
 			for (let i = 0; i < this.height; i++){
@@ -680,6 +684,8 @@ var speed = 1
 			this.field[this.height-1][0].left = true
 			this.field[this.height-1][this.width-1].right = true
 			this.field[this.height-1][this.width-1].down = true
+
+			return this
 		}
 		eller(){
 			for (let j = 0; j < this.width; j++) {
@@ -877,55 +883,56 @@ var speed = 1
 				return false
 			}
 		}
-		generatePoint(type){
-			let point = new Point( Math.floor( Math.random() * this.width), Math.floor( Math.random() * this.height), this.d, speed, type)
+		generatePoint(){
+			let point = new Point( Math.floor( Math.random() * this.width), Math.floor( Math.random() * this.height), this.d, speed)
 			if (isDefined(reddot)){
 				if (point.is(reddot)) { 
-					return this.generatePoint(type)
+					return this.generatePoint()
 				}
 			}
 			if (isDefined(exit)){
 				if  (point.is(exit)){
-					return gthis.eneratePoint(type)
+					return this.eneratePoint()
 				}
 			}
 			return point
 		}
-		generatePointAtWall(type){
+		generatePointAtWall(){
 			let walls = [`up`,`right`,`down`,`left`]
 			//choose wall
 			let randomItem = walls[Math.floor(Math.random()*walls.length)]
 			//shose position on the wall
 			if (randomItem == `up`){
-				return new Point(Math.floor(Math.random() * this.width), 0, this.d, speed, type)
+				return new Point(Math.floor(Math.random() * this.width), 0, this.d, speed)
 			}else if (randomItem == `right`) {
-				return new Point( this.width - 1, Math.floor( Math.random() * this.height), this.d, speed, type)
+				return new Point( this.width - 1, Math.floor( Math.random() * this.height), this.d, speed)
 			}else if (randomItem == `down`) {
-				return new Point(Math.floor(Math.random() * this.width),  this.height - 1, this.d, speed, type)
+				return new Point(Math.floor(Math.random() * this.width),  this.height - 1, this.d, speed)
 			}else if (randomItem ==`left` ) {
-				return new Point(0 ,Math.floor( Math.random() * this.height), this.d, speed, type)
+				return new Point(0 ,Math.floor( Math.random() * this.height), this.d, speed)
 			}else {
 				console.log(`unknown wall`)
-				return this.generatePoint(type)
+				return this.generatePoint()
 			}
 		}
 			//function createReddot
 		createReddot(){
-			return this.generatePointAtWall(`Reddot`)	
+			return (new Reddot()).copyFrom(this.generatePointAtWall())
 		}
 		//create exit
 		createExit() {
-			let cexit = this.generatePointAtWall(`Exit`)
+			//(new Exit())
+			let cexit = this.generatePointAtWall()
 			if (isDefined(reddot)){
-				return (cexit.is(reddot) ? this.createExit() : cexit )
+				return (cexit.is(reddot) ? this.createExit() : (new Exit()).copyFrom(cexit) )
 			}else {
-				return cexit
+				return (new Exit()).copyFrom(cexit)
 			} 
 		}
 		createFovEnh(count){
 			this.fovEnhArr = new Array(count)
 			for (let i = 0; i < this.fovEnhArr.length; i++){
-				this.fovEnhArr[i] = this.generatePoint(`FovEnh`)
+				this.fovEnhArr[i] = (new FovEnh()).copyFrom(this.generatePoint())
 			}
 		}
 		//check if reddot in fovEnh
