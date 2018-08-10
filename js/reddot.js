@@ -79,7 +79,7 @@ var speed = 1
 		//create new field
 		maze = (new SqfField(sqfX, sqfY, sqfd)).createMaze(`eller`)
 		//create point
-		reddot = maze.createReddot()
+		reddot = maze.createReddot(speed)
 
 		//clear path
 		maze.addPath( new Point( reddot.x, reddot.y ) )
@@ -89,6 +89,8 @@ var speed = 1
 		cTimers = 0
 		
 		maze.createFovEnh(5)
+
+		Global.createEvli(speed/2)
 
 		draw3(middleCanvas)
 	}
@@ -253,18 +255,9 @@ var speed = 1
 				drawFOVi = event.target.checked
 			}
 		}
-		static createEvli(){
+		static createEvli(speed){
 			if (isDefined(maze)){
-				this.evil = (new Evil()).copyFrom(maze.generatePoint())
-
-				// //ai for evil
-				// this.evil.move = function(){
-				// 	if (!maze.checkWall(Global.evil.x, Global.evil.y, Global.evil.x + 1, Global.evil.y)){
-				// 		Global.evil.x++
-				// 	}else if (!maze.checkWall(Global.evil.x, Global.evil.y, Global.evil.x - 1, Global.evil.y)) {
-				// 		Global.evil.x--
-				// 	}
-				// }	
+				this.evil = (new Evil()).copyFrom(maze.generatePoint(speed))
 			}
 		}
 		static handleMove(point, up, right, down, left){
@@ -566,6 +559,23 @@ var speed = 1
 			this.moveL = false
 			this.gmoveL = false
 		}
+		moveTo(x, y){
+			this.x = x
+			this.y = y
+			this.resetView()
+		}
+		moveToPoint(point){
+			if (isDefined(point)){
+				this.x = point.x
+				this.y = point.y
+				this.resetView()
+			}
+		}
+		resetView(){
+			this.view = {}
+			this.view.x = this.x * this.d
+			this.view.y = this.y * this.d
+		}
 	}
 	class Reddot extends Point {
 		render(ctx){
@@ -620,6 +630,10 @@ var speed = 1
 
 			this.clearMove()
 
+			if (this.checkEvil()){
+				this.doEvil()
+			}
+
 			Global.handleMove(this, up, right, down, left)
 		}
 		handleWrongMove(){
@@ -640,6 +654,18 @@ var speed = 1
 			ctx.globalCompositeOperation = `source-over`
 			ctx.strokeRect(this.view.x + this.d/4, this.view.y + this.d/4 , this.d/2, this.d/2)
 			ctx.closePath()
+		}
+		checkEvil(){
+			return (isDefined(reddot)) ? (reddot.is(this)) : false
+		}
+		doEvil() {
+			if (isDefined(reddot) && isDefined(maze)){
+				reddot.moveToPoint(maze.path[0])
+				reddot.resetView()
+				reddot.clearMove()
+				maze.path = undefined
+				maze.addPath(reddot)
+			}
 		}
 	}
 	//square to fill maze
@@ -922,7 +948,7 @@ var speed = 1
 			}
 			return point
 		}
-		generatePointAtWall(){
+		generatePointAtWall(speed){
 			let walls = [`up`,`right`,`down`,`left`]
 			//choose wall
 			let randomItem = walls[Math.floor(Math.random()*walls.length)]
@@ -941,8 +967,8 @@ var speed = 1
 			}
 		}
 			//function createReddot
-		createReddot(){
-			return (new Reddot()).copyFrom(this.generatePointAtWall())
+		createReddot(speed){
+			return (new Reddot()).copyFrom(this.generatePointAtWall(speed))
 		}
 		//create exit
 		createExit() {
