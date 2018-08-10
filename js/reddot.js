@@ -1,7 +1,7 @@
 //arrow functions
 const isDefined = (check) => (check !== undefined)
-const round = (x) =>  (Math.round(x * 1000) / 1000)
-const fuzzCheck = (a,b) => (Math.abs(a - b) <= 0.1)
+//const round = (x) =>  (Math.round(x * 1000) / 1000)
+const fuzzCheck = (a,b, c = 0.1) => (Math.abs(a - b) <= c)
 
 //variables for canvas && square diameter
 const sqfX = 40
@@ -47,6 +47,7 @@ var speed = 1
 		make them diissapear after 10s
 		timer does not stack
 		and dissapear after new maze is created
+	- improove evil AIIIIII
 
 */
 
@@ -364,6 +365,9 @@ var speed = 1
 		is(point){
 			return (this.x == point.x && this.y == point.y)
 		}
+		isView(point, c){
+			return ( fuzzCheck(this.view.x, point.view.x, c) && fuzzCheck(this.view.y, point.view.y, c) )
+		}
 		copyFrom(point){
 			this.x = point.x
 			this.y = point.y
@@ -630,11 +634,99 @@ var speed = 1
 
 			this.clearMove()
 
+			Global.handleMove(this, up, right, down, left)
+		}
+		handleContinueMove(){
+			//continue to move
 			if (this.checkEvil()){
 				this.doEvil()
 			}
+			if (this.gmoveU && this.gmoveR){
+				this.view.x += this.speed
+				this.view.y -= this.speed
+				if (fuzzCheck(this.view.y/this.d, this.y -1) && fuzzCheck(this.view.x/this.d, this.x + 1)){
+					this.view.x = (this.x + 1)*this.d
+					this.view.y = (this.y - 1)*this.d
+					this.moveU = true
+					this.moveR = true
+					this.gmoveU = false
+					this.gmoveR = false
+					return true
+				}
 
-			Global.handleMove(this, up, right, down, left)
+			}else if (this.gmoveR && this.gmoveD) {
+				this.view.x += this.speed
+				this.view.y += this.speed
+				if (fuzzCheck(this.view.x/this.d, this.x + 1) && fuzzCheck( this.view.y/this.d, this.y + 1)){
+					this.view.x = (this.x + 1)*this.d
+					this.view.y = (this.y + 1)*this.d
+					this.moveR = true
+					this.moveD = true
+					this.gmoveR = false
+					this.gmoveD = false
+					return true
+				}
+				
+			}else if (this.gmoveD && this.gmoveL) {
+				this.view.x -= this.speed
+				this.view.y += this.speed
+				if (fuzzCheck( this.view.y/this.d, this.y + 1) && fuzzCheck(this.view.x/this.d, this.x -1)) {
+					this.view.x = (this.x -1)*this.d
+					this.view.y = (this.y + 1)*this.d
+					this.moveD = true
+					this.moveL = true
+					this.gmoveD = false
+					this.gmoveL = false
+					return true
+				}
+				
+			}else if (this.gmoveL && this.gmoveU) {
+				this.view.x -= this.speed
+				this.view.y -= this.speed
+				if (fuzzCheck(this.view.x/this.d, this.x -1) && fuzzCheck(this.view.y/this.d, this.y -1)){
+					this.view.x = (this.x -1)*this.d
+					this.view.y = (this.y - 1)*this.d
+					this.moveL = true
+					this.moveU = true
+					this.gmoveL = false
+					this.gmoveU = true
+					return true
+				}
+			}else if (this.gmoveU) {
+				this.view.y -= this.speed
+				if (fuzzCheck(this.view.y/this.d, this.y -1)){
+					this.view.y = (this.y - 1)*this.d
+					this.moveU = true
+					this.gmoveU = false
+					return true
+				}
+				
+			}else if (this.gmoveR) {
+				this.view.x += this.speed
+				if (fuzzCheck(this.view.x/this.d, this.x + 1)){
+					this.view.x = (this.x + 1)*this.d
+					this.moveR = true
+					this.gmoveR = false
+					return true
+				}
+			}else if (this.gmoveD) {
+				this.view.y += this.speed
+				if (fuzzCheck( this.view.y/this.d, this.y + 1)) {
+					this.view.y = (this.y + 1)*this.d
+					this.moveD = true
+					this.gmoveD = false
+					return true
+				}
+			}else if (this.gmoveL) {
+				this.view.x -= this.speed
+				if (fuzzCheck(this.view.x/this.d, this.x -1)){
+					this.view.x = (this.x -1)*this.d
+					this.moveL = true
+					this.gmoveL = false
+					return true
+				}
+			}
+			return false
 		}
 		handleWrongMove(){
 
@@ -645,9 +737,7 @@ var speed = 1
 			let left = (up || right || down) ? false : move[Math.floor(Math.random()*move.length)]
 
 
-			//setTimeout(
-				Global.handleMove(this, up, right, down, left)//, 3000
-				//)
+			Global.handleMove(this, up, right, down, left)
 		}
 		render(ctx){
 			ctx.strokeStyle = `purple`
@@ -656,7 +746,7 @@ var speed = 1
 			ctx.closePath()
 		}
 		checkEvil(){
-			return (isDefined(reddot)) ? (reddot.is(this)) : false
+			return (isDefined(reddot)) ? (reddot.isView(this, this.d/2)) : false
 		}
 		doEvil() {
 			if (isDefined(reddot) && isDefined(maze)){
