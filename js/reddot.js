@@ -11,29 +11,10 @@ const sqfd = 20
 const cwidth = sqfX*sqfd
 const cheight = sqfY*sqfd
 
-const topCanvas = `reddot`
-const middleCanvas = `maze`
-const backCanvas = `fov`
-
-//const for random place borders 
-const rPlace = 0.3
-const dPlace = 0.7
-
-//variables for  fov
-var fovRM = 1
-var currentTimer = undefined
-var cTimers = undefined
-//
 //global variables for objects
 var maze = undefined
 var reddot = undefined
 var exit = undefined
-
-var globalContext = undefined
-
-//variables for draw some stuff
-var drawFOVi = true
-var drawPath = true
 
 //ns
 var debug = true
@@ -48,6 +29,7 @@ var speed = 1
 		timer does not stack
 		and dissapear after new maze is created
 	- improove evil AIIIIII
+	- full document view of maze
 
 */
 
@@ -63,37 +45,34 @@ var speed = 1
 		Global.initglobal()
 
 		Global.forDebug()
-		
-		globalContext = new ContextHandler(cwidth, cheight, backCanvas, middleCanvas, topCanvas)
 
-		//startMaze
 		startMaze()
 
 		requestAnimationFrame(drawLoop)
 	}
-
+	
 	//create maze & reddot
 	function startMaze(){
-		if (isDefined(currentTimer)){
-			clearTimeout(currentTimer)
+		if (isDefined(Global.currentTimer)){
+			clearTimeout(Global.currentTimer)
 		}
 		//create new field
 		maze = (new SqfField(sqfX, sqfY, sqfd)).createMaze(`eller`)
 		//create point
 		reddot = maze.createReddot(speed)
-
 		//clear path
 		maze.addPath( new Point( reddot.x, reddot.y ) )
 		//create exit
 		exit = maze.createExit()
 		//create fov enhancement points
-		cTimers = 0
+		Global.cTimers = 0
 		
 		maze.createFovEnh(5)
 
 		Global.createEvli(speed/2)
 
-		draw3(middleCanvas)
+		let canvasID = Global.middleCanvas
+		draw3(canvasID)
 	}
 
 	// animation loop
@@ -104,67 +83,54 @@ var speed = 1
 
 /*
 }
-	additional funcitons {
-*/
-	//degradation of fov
-	function fovDeg(){
-		let timerID = setTimeout(Global.decreaseFovf, 10000)
-		cTimers++
-		//for stacking fov
-		if (isDefined(currentTimer)){
-			clearTimeout(currentTimer)
-		}
-		return timerID
-	}
-/*
-}
 
 	draw {
 */
 
 	//main draw
 	function draw(){
-		let canvasID = backCanvas
+		let canvasID = Global.backCanvas
 
-		globalContext.clearCtx(canvasID)
+		Global.ctx.clearCtx(canvasID)
 
 		Global.handleMove(reddot, Global.upM, Global.rightM, Global.downM, Global.leftM)
 		//draw exit
 		if (isDefined(exit)){
-			exit.render(globalContext.getCtx(canvasID))
+			exit.render(Global.ctx.getCtx(canvasID))
 		}
-
+		//draw fov enhancement array
 		if (isDefined(maze)){
-			maze.renderFovEnhArr(globalContext.getCtx(canvasID))
+			maze.renderFovEnhArr(Global.ctx.getCtx(canvasID))
 		}
+		//draw & move evil
 		if (isDefined(Global.evil)){
 			Global.handleMove(Global.evil)
-			//global.evil.move()
-			Global.evil.render(globalContext.getCtx(canvasID))
+			Global.evil.render(Global.ctx.getCtx(canvasID))
 		}
 		//draw fov
-		if (isDefined(reddot) && drawFOVi){
-			reddot.renderFov(globalContext.getCtx(canvasID))
+		if (isDefined(reddot) && Global.drawFOVi){
+			reddot.renderFov(Global.ctx.getCtx(canvasID))
 		}
-		canvasID = topCanvas
 
-		globalContext.clearCtx(canvasID)
+		canvasID = Global.topCanvas
+
+		Global.ctx.clearCtx(canvasID)
 		//draw path
-		if (isDefined(maze) && drawPath){
-			maze.renderPath(globalContext.getCtx(canvasID))
+		if (isDefined(maze) && Global.drawPath){
+			maze.renderPath(Global.ctx.getCtx(canvasID))
 		}
 		//redraw reddot
 		if (isDefined(reddot)){
-			reddot.render(globalContext.getCtx(canvasID))
+			reddot.render(Global.ctx.getCtx(canvasID))
 		}
 		
 	}
 	function draw3(canvasID){
-		globalContext.clearCtx(canvasID)
+		Global.ctx.clearCtx(canvasID)
 
 		//redraw maze
 		if (isDefined(maze)){
-			maze.render(globalContext.getCtx(canvasID))
+			maze.render(Global.ctx.getCtx(canvasID))
 		}
 	}
 
@@ -177,14 +143,24 @@ var speed = 1
 			
 			Global.initListeners()
 
-			this.upM = false
-			this.downM = false
-			this.rightM = false
-			this.leftM = false
+			Global.upM = false
+			Global.downM = false
+			Global.rightM = false
+			Global.leftM = false
 
-			//this.reddot = undefined
-			// this.maze = undefined
-			// this.exit = undefined
+			Global.currentTimer = undefined
+			Global.cTimers = undefined
+			Global.fovRM = 1
+
+			Global.drawFOVi = true
+			Global.drawPath = true
+
+			Global.topCanvas = `reddot`
+			Global.middleCanvas = `maze`
+			Global.backCanvas = `fov`
+
+			Global.ctx = new ContextHandler(cwidth, cheight, Global.backCanvas, Global.middleCanvas, Global.topCanvas)
+
 		}
 		static initListeners(){
 			if (isDefined(document)) {
@@ -247,18 +223,18 @@ var speed = 1
 		//handle path checkbox
 		static handlePathCb(event){
 			if (isDefined(event)){				
-				drawPath = event.target.checked
+				Global.drawPath = event.target.checked
 			}
 		}
 		//handle fov checkbox
 		static handleFovCb(event){
 			if (isDefined(event)){
-				drawFOVi = event.target.checked
+				Global.drawFOVi = event.target.checked
 			}
 		}
 		static createEvli(speed){
 			if (isDefined(maze)){
-				this.evil = (new Evil()).copyFrom(maze.generatePoint(speed))
+				Global.evil = (new Evil()).copyFrom(maze.generatePoint(speed))
 			}
 		}
 		static handleMove(point, up, right, down, left){
@@ -284,13 +260,22 @@ var speed = 1
 
 		}
 		static decreaseFovf(){
-			if (fovRM > 1){
-				fovRM--
-				currentTimer = undefined
-				if (cTimers > 1){
-					currentTimer = setTimeout(Global.decreaseFovf, 10000)
+			if (Global.fovRM > 1){
+				Global.fovRM--
+				Global.currentTimer = undefined
+				if (Global.cTimers > 1){
+					Global.currentTimer = setTimeout(Global.decreaseFovf, 10000)
 				}
 			}
+		}
+		static fovDeg(){
+			let timerID = setTimeout(Global.decreaseFovf, 10000)
+			Global.cTimers++
+			//for stacking fov
+			if (isDefined(Global.currentTimer)){
+				clearTimeout(Global.currentTimer)
+			}
+			return timerID
 		}
 	}
 
@@ -530,9 +515,9 @@ var speed = 1
 				this.x += 1
 			}else if (this.moveR && this.moveD) {
 				this.x += 1
-				this.y +=1
+				this.y += 1
 			}else if (this.moveD && this.moveL) {
-				this.y +=1
+				this.y += 1
 				this.x -= 1
 			}else if (this.moveL && this.moveU) {
 				this.x -= 1
@@ -548,7 +533,7 @@ var speed = 1
 			}
 		}
 		handleWrongMove(){
-
+			//nothing to do here
 		}
 		clearMove(){
 			this.moveU = false
@@ -601,7 +586,7 @@ var speed = 1
 		}
 		renderFov(ctx){
 			ctx.globalCompositeOperation = `darken`
-			let gradient = ctx.createRadialGradient(this.view.x + this.d/2, this.view.y + this.d/2, this.d * fovRM, this.view.x + this.d/2, this.view.y + this.d/2, this.d * (fovRM * 2))
+			let gradient = ctx.createRadialGradient(this.view.x + this.d/2, this.view.y + this.d/2, this.d * Global.fovRM, this.view.x + this.d/2, this.view.y + this.d/2, this.d * (Global.fovRM * 2))
 			gradient.addColorStop(0, `white`) //from
 			gradient.addColorStop(1, `black`) //to
 			ctx.fillStyle = gradient
@@ -636,6 +621,7 @@ var speed = 1
 
 			Global.handleMove(this, up, right, down, left)
 		}
+
 		handleContinueMove(){
 			//continue to move
 			if (this.checkEvil()){
@@ -730,12 +716,12 @@ var speed = 1
 		}
 		handleWrongMove(){
 
-			let move = [false, true]
-			let up = move[Math.floor(Math.random()*move.length)]
-			let right = (up) ? false : move[Math.floor(Math.random()*move.length)]
-			let down = (up || right)  ? false : move[Math.floor(Math.random()*move.length)]
-			let left = (up || right || down) ? false : move[Math.floor(Math.random()*move.length)]
-
+			let moveVector = [`up`, `right`, `down`, `left`]
+			let move = moveVector[Math.floor(Math.random()*moveVector.length)]
+			let up = (move == `up`)
+			let right = (move == `right`)
+			let down = (move == `down`)
+			let left = (move == `left`)
 
 			Global.handleMove(this, up, right, down, left)
 		}
@@ -791,6 +777,9 @@ var speed = 1
 			this.path = undefined
 
 			this.fovEnhArr = undefined
+
+			this.rPlace = 0.3
+			this.dPlace = 0.7
 		}
 		createMaze(type){
 			//for performance testing
@@ -841,7 +830,7 @@ var speed = 1
 							this.field[i][j].right = true //place right to this box
 							this.field[i][j+1].left = true //and to right for easy check of path
 						}else{
-							if (Math.random() < rPlace) { 
+							if (Math.random() < this.rPlace) { 
 								this.field[i][j].right = true //place right to this box
 								this.field[i][j+1].left = true //and to right for easy check of path
 							}else {
@@ -857,7 +846,7 @@ var speed = 1
 						if ( cindex != this.field[i][j].index) { 
 							downWay = false 
 						}
-						if (Math.random() < dPlace){
+						if (Math.random() < this.dPlace){
 							if (j != this.width-1) {
 								if (this.field[i][j].index == this.field[i][j+1].index || downWay){
 									this.field[i][j].down = true
@@ -905,7 +894,8 @@ var speed = 1
 					this.field[i+1] = line
 				}else{
 					//last line
-					for (let j = 0; j < this.width; j++) {
+					for (
+						let j = 0; j < this.width; j++) {
 						//place right
 						if (j != this.width-1){
 							if (this.field[i][j].index == this.field[i][j+1].index){
@@ -1056,7 +1046,7 @@ var speed = 1
 				return this.generatePoint()
 			}
 		}
-			//function createReddot
+		//function createReddot
 		createReddot(speed){
 			return (new Reddot()).copyFrom(this.generatePointAtWall(speed))
 		}
@@ -1081,9 +1071,10 @@ var speed = 1
 			if (isDefined(point) && isDefined(this.fovEnhArr)){
 				for (let i = 0; i < this.fovEnhArr.length; i++){
 					if (point.is(this.fovEnhArr[i])){
-						fovRM++
+						Global.fovRM++
+						//Global.fovRM = Global.fovRM + 1
 						this.fovEnhArr.splice( i, 1)
-						currentTimer = fovDeg()
+						Global.currentTimer = Global.fovDeg()
 					}
 				}
 			}else {
