@@ -297,7 +297,7 @@ var speed = 1
 				canvas.height = height
 				canvas.width = width
 				if (canvas.getContext){
-					let ctx  = canvas.getContext(`2d`, { alpha: false })
+					let ctx  = canvas.getContext(`2d`, { alpha: true })
 					ctx.beginPath()
 					ctx.globalAlpha = 1
 					ctx.lineCap = `round`
